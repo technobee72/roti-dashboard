@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>RotiKu Pro - Manajemen Produksi & Order (Firebase)</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+<script
+const firebaseConfig = {
+  apiKey: "AIzaSyBynxMAq1rTtB5Wx_zj9UGkXNJxVSqasYk",
+  authDomain: "rotikupro.firebaseapp.com",
+  projectId: "rotikupro",
+  storageBucket: "rotikupro.firebasestorage.app",
+  messagingSenderId: "6512287858",
+  appId: "1:6512287858:web:c3feb3586af50965a9a2eb"
+};
+firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+    <style>
+        /* ===== CSS SAMA SEPERTI SEBELUMNYA (diringkas untuk kejelasan) ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f5efe8;
+            padding: 12px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+        .app {
+            max-width: 700px;
+            width: 100%;
+            background: white;
+            border-radius: 32px 32px 24px 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            overflow: hidden;
+            padding: 24px 16px 30px;
+            position: relative;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #5a3e2b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        h1 span {
+            background: #d4a373;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-size: 1.4rem;
+        }
+        .sub {
+            color: #7b5e47;
+            margin-bottom: 24px;
+            border-left: 5px solid #d4a373;
+            padding-left: 16px;
+            font-weight: 300;
+            font-size: 0.95rem;
+        }
+        .tab-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: #faf1e8;
+            padding: 12px;
+            border-radius: 60px;
+            justify-content: center;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #5a3e2b;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1 0 auto;
+            max-width: 120px;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: #d4a373;
+            color: white;
+            box-shadow: 0 4px 8px rgba(212,163,115,0.3);
+        }
+        .tab-btn.hidden {
+            display: none;
+        }
+        .section {
+            display: none;
+            margin-top: 16px;
+        }
+        .section.active {
+            display: block;
+        }
+        .card {
+            background: #fffbf5;
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #eddccb;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .card-title {
+            font-weight: 700;
+            color: #5a3e2b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.2rem;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6b4f38;
+            display: block;
+            margin-bottom: 6px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1.5px solid #e7d6c5;
+            border-radius: 30px;
+            font-size: 1rem;
+            background: white;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #d4a373;
+            box-shadow: 0 0 0 3px rgba(212,163,115,0.2);
+        }
+        .btn {
+            background: #d4a373;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 14px 24px;
+            border-radius: 40px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #a57c56;
+            transition: 0.08s linear;
+            border: 1px solid #c48f5e;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #a57c56;
+        }
+        .btn-secondary {
+            background: #eddccb;
+            box-shadow: 0 4px 0 #c9b19a;
+            color: #5a3e2b;
+            border-color: #dac2ab;
+        }
+        .btn-small {
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            box-shadow: 0 3px 0 #a57c56;
+        }
+        .btn-outline {
+            background: transparent;
+            box-shadow: none;
+            border: 2px solid #d4a373;
+            color: #7b5e47;
+        }
+        .btn-outline:active {
+            transform: translateY(2px);
+        }
+        .btn-danger {
+            background: #d9534f;
+            box-shadow: 0 5px 0 #b52b27;
+            border-color: #d43f3a;
+        }
+        .btn-danger:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #b52b27;
+        }
+        .btn-warning {
+            background: #f0ad4e;
+            box-shadow: 0 5px 0 #c77c11;
+            border-color: #eea236;
+        }
+        .btn-warning:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #c77c11;
+        }
+        .btn-success {
+            background: #5cb85c;
+            box-shadow: 0 5px 0 #3d8b3d;
+            border-color: #4cae4c;
+        }
+        .btn-success:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #3d8b3d;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        th {
+            background: #d4a373;
+            color: white;
+            font-weight: 600;
+            padding: 12px 8px;
+            font-size: 0.85rem;
+        }
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eddccb;
+            color: #3a2c1e;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #5cb85c20;
+            color: #3d8b3d;
+        }
+        .badge-warning {
+            background: #f0ad4e20;
+            color: #c77c11;
+        }
+        .badge-danger {
+            background: #d9534f20;
+            color: #b52b27;
+        }
+        .badge-secondary {
+            background: #eddccb;
+            color: #7b5e47;
+        }
+        .badge-info {
+            background: #d4a37320;
+            color: #a57c56;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #faf1e8;
+            border-radius: 24px;
+            padding: 16px 12px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #5a3e2b;
+            line-height: 1.2;
+        }
+        .stat-label {
+            color: #8b6f55;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .flex {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .list-item {
+            background: #fffbf5;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #eddccb;
+        }
+        .text-small {
+            font-size: 0.8rem;
+            color: #8b6f55;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: normal;
+        }
+        @media print {
+            body.print-body * {
+                visibility: visible;
+            }
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                padding: 20px;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 28px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .user-info {
+            position: absolute;
+            top: 24px;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #faf1e8;
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+        }
+        .user-info span {
+            color: #5a3e2b;
+            font-weight: 600;
+        }
+        .logout-btn {
+            background: transparent;
+            border: none;
+            color: #d9534f;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .laporan-table {
+            font-size: 0.7rem;
+        }
+        .laporan-table th,
+        .laporan-table td {
+            padding: 6px 4px;
+            white-space: nowrap;
+        }
+        @media print {
+            .laporan-table {
+                font-size: 7pt;
+            }
+            .laporan-table th,
+            .laporan-table td {
+                padding: 3px 2px;
+            }
+            .table-responsive {
+                overflow: visible !important;
+            }
+            @page {
+                size: landscape;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="user-info" id="userInfo" style="display: none;">
+            <span id="userNameDisplay"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        <h1>🍞 Roti<span>Ku Pro</span></h1>
+        <div class="sub">Produksi • Stok • Order • Afkir • Laporan • Pengguna</div>
+
+        <div class="tab-bar" id="tabBar">
+            <button class="tab-btn" data-tab="dashboard">🏠 Dashboard</button>
+            <button class="tab-btn" data-tab="bahanbaku">🥚 Bahan Baku</button>
+            <button class="tab-btn" data-tab="resep">📝 Resep</button>
+            <button class="tab-btn" data-tab="produksi">⚙️ Produksi</button>
+            <button class="tab-btn" data-tab="stokproduk">🍞 Stok Produk</button>
+            <button class="tab-btn" data-tab="order">📦 Order</button>
+            <button class="tab-btn" data-tab="retur">↩️ Retur</button>
+            <button class="tab-btn" data-tab="afkir">🗑️ Afkir</button>
+            <button class="tab-btn" data-tab="laporan">📊 Laporan</button>
+            <button class="tab-btn" data-tab="pengguna">👥 Pengguna</button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="dashTotalBahan">0</div>
+                    <div class="stat-label">Bahan Baku</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="dashTotalProduk">0</div>
+                    <div class="stat-label">Stok Produk</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="dashTotalAfkir">0</div>
+                    <div class="stat-label">Stok Afkir</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="dashOrderPending">0</div>
+                    <div class="stat-label">Order Pending</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📈 Produksi Bulan Ini</div>
+                <div id="produksiBulanIni">Memuat...</div>
+            </div>
+            <div class="card">
+                <div class="card-title">💰 Laba Bersih (Bulan Ini)</div>
+                <div style="font-size: 2rem; font-weight:700;" id="labaBulanIni">Rp0</div>
+            </div>
+        </section>
+
+        <!-- Bahan Baku Section -->
+        <section id="bahanbaku" class="section">
+            <div class="card">
+                <div class="card-title">➕ Tambah Bahan Baku</div>
+                <form id="formBahan" onsubmit="event.preventDefault(); simpanBahan();">
+                    <input type="hidden" id="bahanId" value="">
+                    <div class="form-group">
+                        <label>Nama Bahan</label>
+                        <input type="text" id="bahanNama" placeholder="Contoh: Tepung Terigu" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Satuan (kg, liter, pcs)</label>
+                        <input type="text" id="bahanSatuan" placeholder="kg" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Harga per Satuan (Rp)</label>
+                        <input type="number" id="bahanHarga" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stok Awal</label>
+                        <input type="number" id="bahanStok" min="0" step="0.001" required>
+                    </div>
+                    <div class="flex">
+                        <button type="submit" class="btn" id="btnSimpanBahan">💾 Simpan</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetFormBahan()">↩️ Reset</button>
+                        <button type="button" class="btn btn-secondary" onclick="printBahanBaku()">🖨️ Cetak Bahan</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Daftar Bahan Baku</div>
+                <div id="daftarBahan"></div>
+            </div>
+        </section>
+
+        <!-- Resep Section -->
+        <section id="resep" class="section">
+            <div class="card">
+                <div class="card-title">📝 Buat/Edit Resep</div>
+                <form id="formResep" onsubmit="event.preventDefault(); simpanResep();">
+                    <input type="hidden" id="resepId" value="">
+                    <div class="form-group">
+                        <label>Nama Produk (Roti)</label>
+                        <input type="text" id="resepNama" placeholder="Contoh: Roti Sobek" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hasil Produksi per Batch (unit)</label>
+                        <input type="number" id="resepHasil" min="1" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Bahan-bahan (pilih bahan & jumlah)</label>
+                        <div id="ingredientList"></div>
+                        <button type="button" class="btn btn-small btn-outline" onclick="tambahIngredient()" style="margin-top:8px;">➕ Tambah Bahan</button>
+                    </div>
+                    <div class="flex">
+                        <button type="submit" class="btn">💾 Simpan Resep</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetFormResep()">↩️ Reset</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Daftar Resep</div>
+                <div id="daftarResep"></div>
+            </div>
+        </section>
+
+        <!-- Produksi Section -->
+        <section id="produksi" class="section">
+            <div class="card">
+                <div class="card-title">⚙️ Catat Produksi</div>
+                <form id="formProduksi" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label>Pilih Resep</label>
+                        <select id="produksiResep" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Jumlah Batch</label>
+                        <input type="number" id="produksiBatch" min="1" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Biaya Tenaga Kerja (Rp)</label>
+                        <input type="number" id="biayaTenagaKerja" min="0" step="1000" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Biaya Operasional (Gas & Listrik) (Rp)</label>
+                        <input type="number" id="biayaOperasional" min="0" step="1000" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Biaya Kemasan (Rp)</label>
+                        <input type="number" id="biayaKemasan" min="0" step="1000" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Produksi</label>
+                        <input type="date" id="produksiTanggal" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Catatan</label>
+                        <textarea id="produksiCatatan" rows="2"></textarea>
+                    </div>
+                    <div class="flex">
+                        <button type="button" class="btn btn-secondary" onclick="prosesProduksi()">🖨️ Proses Produksi</button>
+                        <button type="button" class="btn" onclick="tanyaProdukGagal()">🏭 Selesai Produksi</button>
+                        <button type="button" class="btn btn-secondary" onclick="kalkulatorBiaya()">🧮 Kalkulator Biaya</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Riwayat Produksi</div>
+                <div id="daftarProduksi"></div>
+            </div>
+        </section>
+
+        <!-- Stok Produk Section -->
+        <section id="stokproduk" class="section">
+            <div class="card">
+                <div class="card-title">🍞 Stok Produk Jadi & Harga Jual</div>
+                <div class="flex" style="margin-bottom: 16px;">
+                    <button class="btn btn-small btn-secondary" onclick="renderStokProduk()">🔄 Refresh</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="tabelStokProduk">
+                        <thead>
+                            <tr>
+                                <th>Nama Produk</th>
+                                <th>Stok</th>
+                                <th>Harga Jual</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyStokProduk"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Order Section -->
+        <section id="order" class="section">
+            <div class="card">
+                <div class="card-title">📦 Buat Order</div>
+                <form id="formOrder" onsubmit="event.preventDefault(); simpanOrder();">
+                    <input type="hidden" id="orderId" value="">
+                    <div class="form-group">
+                        <label>Nama Customer</label>
+                        <input type="text" id="orderCustomer" placeholder="Nama customer" value="Umum" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nomor Telepon Customer</label>
+                        <input type="tel" id="orderPhone" placeholder="08123456789">
+                    </div>
+                    <div class="form-group">
+                        <label>Alamat Pengiriman (opsional)</label>
+                        <textarea id="orderAlamat" rows="2" placeholder="Jl. Contoh No. 123"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Order</label>
+                        <input type="date" id="orderTanggal" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipe Order</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="tipeOrder" value="langsung" checked> Langsung (cek stok)</label>
+                            <label><input type="radio" name="tipeOrder" value="inden"> Inden (tanpa stok)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Pengiriman (untuk inden, isi jika perlu)</label>
+                        <input type="date" id="orderTanggalKirim">
+                    </div>
+                    <div class="form-group">
+                        <label>Item Produk (pilih produk dari resep)</label>
+                        <div id="orderItems"></div>
+                        <button type="button" class="btn btn-small btn-outline" onclick="tambahItemOrder()">➕ Tambah Item</button>
+                    </div>
+                    <div class="form-group" id="dpGroup" style="display: none;">
+                        <label>Uang Muka (Down Payment) - Rp</label>
+                        <input type="number" id="orderDP" min="0" step="1000" value="0">
+                        <div style="margin-top:8px;">
+                            <label>
+                                <input type="checkbox" id="lunasCheckbox"> Lunas (Pembayaran Penuh)
+                            </label>
+                        </div>
+                        <small class="text-small" id="sisaText">Sisa: Rp0</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Order: <span id="totalDisplay">Rp0</span></label>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="orderStatus">
+                            <option value="pending">Pending</option>
+                            <option value="selesai">Selesai</option>
+                            <option value="batal">Batal</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">💾 Simpan Order</button>
+                </form>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Daftar Order</div>
+                <div id="daftarOrder"></div>
+            </div>
+        </section>
+
+        <!-- Retur Section -->
+        <section id="retur" class="section">
+            <div class="card">
+                <div class="card-title">↩️ Catat Retur</div>
+                <form id="formRetur" onsubmit="event.preventDefault(); simpanRetur();">
+                    <div class="form-group">
+                        <label>Pilih Order (opsional)</label>
+                        <select id="returOrder">
+                            <option value="">-- Langsung (tanpa order) --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Produk</label>
+                        <select id="returProduk" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Jumlah</label>
+                        <input type="number" id="returJumlah" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Alasan Retur</label>
+                        <select id="returAlasan">
+                            <option value="expired">Expired / Kadaluarsa</option>
+                            <option value="cacat">Cacat Produk</option>
+                            <option value="lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Keterangan Tambahan</label>
+                        <textarea id="returKeterangan" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn">↩️ Proses Retur</button>
+                </form>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Riwayat Retur</div>
+                <div id="daftarRetur"></div>
+            </div>
+        </section>
+
+        <!-- Afkir Section -->
+        <section id="afkir" class="section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="afkirGagal">0</div>
+                    <div class="stat-label">Gagal Produksi</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="afkirRetur">0</div>
+                    <div class="stat-label">Retur/Expired</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="afkirTotal">0</div>
+                    <div class="stat-label">Total Afkir</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">💰 Penjualan Stok Afkir</div>
+                <form id="formPenjualanAfkir" onsubmit="event.preventDefault(); simpanPenjualanAfkir();">
+                    <div class="form-group">
+                        <label>Tanggal Penjualan</label>
+                        <input type="date" id="jualAfkirTanggal" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Pilih Item Afkir</label>
+                        <div id="afkirItems"></div>
+                        <button type="button" class="btn btn-small btn-outline" onclick="tambahItemAfkir()">➕ Tambah Item</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Total: <span id="totalAfkirDisplay">Rp0</span></label>
+                    </div>
+                    <div class="form-group">
+                        <label>Penerima (Nama Pembeli)</label>
+                        <input type="text" id="jualAfkirPenerima" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Keterangan</label>
+                        <textarea id="jualAfkirKeterangan" rows="2" placeholder="Contoh: Untuk pakan ternak / pupuk organik"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Admin</label>
+                        <input type="text" id="jualAfkirAdmin" value="Admin" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">💾 Simpan Penjualan</button>
+                </form>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Stok Afkir Tersedia</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Jenis</th>
+                                <th>Jumlah</th>
+                                <th>Tanggal Masuk</th>
+                                <th>Sumber</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daftarAfkirTersedia"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Riwayat Penjualan Afkir</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Penerima</th>
+                                <th>Item</th>
+                                <th>Total</th>
+                                <th>Admin</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daftarPenjualanAfkir"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Laporan Section -->
+        <section id="laporan" class="section">
+            <div class="card">
+                <div class="card-title">📅 Filter Laporan</div>
+                <div class="flex">
+                    <select id="laporanJenis">
+                        <option value="harian">Harian</option>
+                        <option value="bulanan">Bulanan</option>
+                    </select>
+                    <input type="date" id="laporanTanggal" value="">
+                    <button class="btn btn-small" onclick="tampilkanLaporan()">Tampilkan</button>
+                    <button class="btn btn-small btn-secondary" onclick="printLaporan()">🖨️ Cetak Laporan</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Laporan Produksi</div>
+                <div class="table-responsive">
+                    <div id="laporanProduksi"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Laporan Penjualan (Order Selesai)</div>
+                <div class="table-responsive">
+                    <div id="laporanPenjualan"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🗑️ Laporan Penjualan Afkir</div>
+                <div class="table-responsive">
+                    <div id="laporanPenjualanAfkir"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">💰 Laba Bersih Periode</div>
+                <div id="laporanLaba" style="font-size:1.8rem;">Rp0</div>
+            </div>
+        </section>
+
+        <!-- Pengguna Section -->
+        <section id="pengguna" class="section">
+            <div class="card">
+                <div class="card-title">➕ Tambah Pengguna</div>
+                <form id="formTambahUser" onsubmit="event.preventDefault(); tambahUser();">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="newUsername" placeholder="Username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="newPassword" placeholder="Password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Level/Role</label>
+                        <select id="newRole" required>
+                            <option value="super">Super Admin</option>
+                            <option value="order">Admin Order</option>
+                            <option value="produksi">Admin Produksi</option>
+                            <option value="afkir">Admin Afkir</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">💾 Tambah</button>
+                </form>
+            </div>
+            <div class="card">
+                <div class="card-title">📋 Daftar Pengguna</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daftarUser"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal Login -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 16px;">🔐 Login Admin</h3>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="loginUsername" placeholder="superadmin / order_admin / produksi_admin / afkir_admin">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="password">
+            </div>
+            <div class="flex" style="justify-content: flex-end;">
+                <button class="btn" onclick="login()">Masuk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Verifikasi Password untuk Hapus/Edit -->
+    <div class="modal" id="passwordModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 16px;">🔐 Verifikasi Password</h3>
+            <p id="passwordModalMessage">Masukkan password untuk melanjutkan</p>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="verifPassword" placeholder="password">
+            </div>
+            <div class="flex" style="justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="batalVerifikasi()">Batal</button>
+                <button class="btn" onclick="lanjutkanAksi()">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Produk Gagal -->
+    <div class="modal" id="produkGagalModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 16px;">Jumlah Produk Gagal</h3>
+            <p id="totalHasilInfo" style="margin-bottom: 16px;"></p>
+            <div class="form-group">
+                <label>Produk Gagal (unit)</label>
+                <input type="number" id="modalProdukGagal" min="0" value="0">
+            </div>
+            <div class="flex" style="justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="tutupModal()">Batal</button>
+                <button class="btn" onclick="simpanProduksiDenganGagal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Stok -->
+    <div class="modal" id="editStokModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 16px;">Edit Stok Opname</h3>
+            <input type="hidden" id="editStokId">
+            <div class="form-group">
+                <label>Nama Produk</label>
+                <input type="text" id="editStokNama" readonly>
+            </div>
+            <div class="form-group">
+                <label>Stok Saat Ini</label>
+                <input type="number" id="editStokSekarang" readonly>
+            </div>
+            <div class="form-group">
+                <label>Stok Baru (hasil opname)</label>
+                <input type="number" id="editStokBaru" min="0" required>
+            </div>
+            <div class="flex" style="justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="tutupEditStokModal()">Batal</button>
+                <button class="btn" onclick="simpanEditStok()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detail Penjualan Afkir -->
+    <div class="modal" id="detailPenjualanAfkirModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 16px;">Detail Penjualan Afkir</h3>
+            <div id="detailPenjualanAfkirContent"></div>
+            <div class="flex" style="justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="tutupDetailModal()">Tutup</button>
+                <button class="btn btn-secondary" onclick="printDetailPenjualanAfkir()">🖨️ Cetak</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Kalkulator Biaya -->
+    <div class="modal" id="biayaModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 16px;">🧮 Rincian Biaya Produksi</h3>
+            <div id="biayaModalContent"></div>
+            <div class="flex" style="justify-content: flex-end; margin-top: 16px;">
+                <button class="btn btn-secondary" onclick="tutupBiayaModal()">Tutup</button>
+                <button class="btn" onclick="cetakBiaya()">🖨️ Cetak</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ubah Password -->
+    <div class="modal" id="ubahPasswordModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 16px;">🔐 Ubah Password</h3>
+            <input type="hidden" id="ubahPasswordUserId">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="ubahPasswordUsername" readonly>
+            </div>
+            <div class="form-group">
+                <label>Password Baru</label>
+                <input type="password" id="ubahPasswordBaru" placeholder="Password baru" required>
+            </div>
+            <div class="flex" style="justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="tutupUbahPasswordModal()">Batal</button>
+                <button class="btn" onclick="simpanUbahPassword()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== FIREBASE CONFIG (GANTI DENGAN PUNYA ANDA) ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSy...", // GANTI
+            authDomain: "your-project.firebaseapp.com", // GANTI
+            projectId: "your-project", // GANTI
+            storageBucket: "your-project.appspot.com", // GANTI
+            messagingSenderId: "...", // GANTI
+            appId: "..." // GANTI
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ==================== DATA UTAMA ====================
+        let bahanBaku = [];
+        let resepList = [];
+        let produksiList = [];
+        let produkJadi = [];
+        let orderList = [];
+        let returList = [];
+        let afkirList = [];
+        let penjualanAfkirList = [];
+        let users = [];
+
+        let currentUser = null;
+        let pendingAction = null;
+        let dataProduksiSementara = null;
+
+        // ==================== UTILITY ====================
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function formatNumberDesimal(num) {
+            return num.toFixed(3).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(\d{3})$/, ',$1');
+        }
+
+        function getBahanNama(id) {
+            const b = bahanBaku.find(b => b.id == id);
+            return b ? b.nama : '?';
+        }
+
+        function getResepNama(id) {
+            const r = resepList.find(r => r.id == id);
+            return r ? r.nama : '?';
+        }
+
+        function getProdukNama(id) {
+            const p = produkJadi.find(p => p.id == id);
+            return p ? p.nama : '?';
+        }
+
+        function getNamaProdukByResepId(resepId) {
+            const r = resepList.find(r => r.id == resepId);
+            return r ? r.nama : 'Tidak Diketahui';
+        }
+
+        // ==================== LOAD ALL FROM FIRESTORE ====================
+        async function loadAllFromFirestore() {
+            const bahanSnap = await db.collection('bahanBaku').get();
+            bahanBaku = bahanSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const resepSnap = await db.collection('resep').get();
+            resepList = resepSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const produksiSnap = await db.collection('produksi').get();
+            produksiList = produksiSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const produkSnap = await db.collection('produkJadi').get();
+            produkJadi = produkSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const orderSnap = await db.collection('order').get();
+            orderList = orderSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const returSnap = await db.collection('retur').get();
+            returList = returSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const afkirSnap = await db.collection('afkir').get();
+            afkirList = afkirSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const penjualanSnap = await db.collection('penjualanAfkir').get();
+            penjualanAfkirList = penjualanSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const usersSnap = await db.collection('users').get();
+            users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            if (currentUser) {
+                renderSemua();
+            }
+        }
+
+        // ==================== LOGIN ====================
+        async function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const hashed = btoa(password);
+            const userQuery = await db.collection('users').where('username', '==', username).where('password', '==', hashed).get();
+            if (!userQuery.empty) {
+                const userDoc = userQuery.docs[0];
+                currentUser = { id: userDoc.id, ...userDoc.data() };
+                document.getElementById('userNameDisplay').innerText = currentUser.username;
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('loginModal').classList.remove('active');
+                applyPermissions();
+                renderSemua();
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector('[data-tab="dashboard"]').classList.add('active');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.getElementById('dashboard').classList.add('active');
+            } else {
+                alert('Username atau password salah');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('loginModal').classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.add('hidden'));
+        }
+
+        function applyPermissions() {
+            if (!currentUser) return;
+            const allowed = currentUser.allowedTabs;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const tab = btn.dataset.tab;
+                if (allowed.includes(tab)) {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            });
+        }
+
+        // ==================== VERIFIKASI PASSWORD ====================
+        function verifikasiPassword(aksiFunction) {
+            pendingAction = aksiFunction;
+            document.getElementById('verifPassword').value = '';
+            document.getElementById('passwordModal').classList.add('active');
+        }
+
+        function batalVerifikasi() {
+            pendingAction = null;
+            document.getElementById('passwordModal').classList.remove('active');
+        }
+
+        async function lanjutkanAksi() {
+            const password = document.getElementById('verifPassword').value;
+            const hashed = btoa(password);
+            if (currentUser && currentUser.password === hashed) {
+                if (pendingAction) {
+                    await pendingAction();
+                }
+                batalVerifikasi();
+            } else {
+                alert('Password salah!');
+            }
+        }
+
+        // ==================== TAB NAVIGATION ====================
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!currentUser) return;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.getElementById(btn.dataset.tab).classList.add('active');
+                renderSemua();
+                if (btn.dataset.tab === 'produksi') {
+                    populateResepSelect();
+                } else if (btn.dataset.tab === 'afkir') {
+                    renderAfkir();
+                } else if (btn.dataset.tab === 'pengguna') {
+                    renderPengguna();
+                }
+            });
+        });
+
+        // ==================== RENDER SEMUA ====================
+        function renderSemua() {
+            if (!currentUser) return;
+            renderBahan();
+            renderResep();
+            renderProduksi();
+            renderStokProduk();
+            renderOrder();
+            renderRetur();
+            renderAfkir();
+            renderDashboard();
+            renderLaporan();
+            populateResepSelect();
+            populateProdukUntukRetur();
+            populateOrderSelect();
+            updateOrderTotal();
+        }
+
+        // ==================== BAHAN BAKU ====================
+        function renderBahan() {
+            const container = document.getElementById('daftarBahan');
+            if (bahanBaku.length === 0) {
+                container.innerHTML = '<div class="list-item">Belum ada bahan.</div>';
+                return;
+            }
+            let html = '';
+            bahanBaku.forEach(b => {
+                const stokFormatted = formatNumberDesimal(b.stok);
+                html += `<div class="list-item">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>${b.nama}</strong>
+                        <div>
+                            <button class="btn-small btn-outline" onclick="verifikasiPassword(() => editBahan('${b.id}'))">✏️</button>
+                            <button class="btn-small btn-secondary" onclick="verifikasiPassword(() => hapusBahan('${b.id}'))">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="text-small">Stok: ${stokFormatted} ${b.satuan} | Harga: Rp${formatNumber(b.harga)}/${b.satuan}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function printBahanBaku() {
+            let totalNilai = 0;
+            let rows = '';
+            bahanBaku.forEach(b => {
+                const nilai = b.stok * b.harga;
+                totalNilai += nilai;
+                rows += `<tr>
+                    <td>${b.nama}</td>
+                    <td>${formatNumberDesimal(b.stok)} ${b.satuan}</td>
+                    <td>Rp${formatNumber(b.harga)}</td>
+                    <td>Rp${formatNumber(Math.round(nilai))}</td>
+                </tr>`;
+            });
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Laporan Bahan Baku</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #5a3e2b; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background: #d4a373; color: white; padding: 8px; }
+                        td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        .total { font-weight: bold; font-size: 1.2em; margin-top: 20px; text-align: right; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🍞 RotiKu Pro - Laporan Bahan Baku</h1>
+                    <p>Tanggal: ${new Date().toLocaleDateString('id-ID')}</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Bahan</th>
+                                <th>Stok</th>
+                                <th>Harga Satuan</th>
+                                <th>Nilai Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                    <div class="total">Total Nilai Bahan Baku: Rp${formatNumber(Math.round(totalNilai))}</div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        async function simpanBahan() {
+            const id = document.getElementById('bahanId').value;
+            const nama = document.getElementById('bahanNama').value.trim();
+            const satuan = document.getElementById('bahanSatuan').value.trim();
+            const harga = parseFloat(document.getElementById('bahanHarga').value);
+            const stok = parseFloat(document.getElementById('bahanStok').value);
+            if (!nama || !satuan || isNaN(harga) || isNaN(stok)) return alert('Isi semua field');
+
+            const data = { nama, satuan, harga, stok };
+
+            if (id) {
+                await db.collection('bahanBaku').doc(id).set(data);
+            } else {
+                await db.collection('bahanBaku').add(data);
+            }
+
+            await loadAllFromFirestore();
+            resetFormBahan();
+        }
+
+        function resetFormBahan() {
+            document.getElementById('bahanId').value = '';
+            document.getElementById('bahanNama').value = '';
+            document.getElementById('bahanSatuan').value = '';
+            document.getElementById('bahanHarga').value = '';
+            document.getElementById('bahanStok').value = '';
+            document.getElementById('btnSimpanBahan').innerHTML = '💾 Simpan';
+        }
+
+        function editBahan(id) {
+            const b = bahanBaku.find(b => b.id == id);
+            if (!b) return;
+            document.getElementById('bahanId').value = b.id;
+            document.getElementById('bahanNama').value = b.nama;
+            document.getElementById('bahanSatuan').value = b.satuan;
+            document.getElementById('bahanHarga').value = b.harga;
+            document.getElementById('bahanStok').value = b.stok;
+            document.getElementById('btnSimpanBahan').innerHTML = '✏️ Update';
+        }
+
+        async function hapusBahan(id) {
+            if (confirm('Hapus bahan?')) {
+                await db.collection('bahanBaku').doc(id).delete();
+                await loadAllFromFirestore();
+            }
+        }
+
+        // ==================== RESEP ====================
+        function updateSatuan(select) {
+            const row = select.closest('.ingredient-row');
+            const bahanId = select.value;
+            const bahan = bahanBaku.find(b => b.id == bahanId);
+            const spanSatuan = row.querySelector('.satuan');
+            spanSatuan.innerText = bahan ? bahan.satuan : '';
+        }
+
+        function tambahIngredient() {
+            const div = document.createElement('div');
+            div.className = 'ingredient-row flex';
+            div.style.marginBottom = '8px';
+            div.style.alignItems = 'center';
+            div.innerHTML = `
+                <select class="ingBahan" style="flex:2;" required onchange="updateSatuan(this)">
+                    <option value="">Pilih Bahan</option>
+                    ${bahanBaku.map(b => `<option value="${b.id}">${b.nama}</option>`).join('')}
+                </select>
+                <input type="number" class="ingJumlah" placeholder="Jumlah" style="flex:1;" step="0.001" min="0" required>
+                <span class="satuan" style="min-width:40px;"></span>
+                <button type="button" class="btn-small btn-secondary" onclick="this.parentElement.remove()">✖</button>
+            `;
+            document.getElementById('ingredientList').appendChild(div);
+        }
+
+        function renderResep() {
+            const container = document.getElementById('daftarResep');
+            if (resepList.length === 0) {
+                container.innerHTML = '<div class="list-item">Belum ada resep.</div>';
+                return;
+            }
+            let html = '';
+            resepList.forEach(r => {
+                let bahanText = '';
+                r.bahan.forEach(b => {
+                    const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                    if (bahan) bahanText += `${bahan.nama} ${b.jumlah} ${bahan.satuan}, `;
+                });
+                html += `<div class="list-item">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>${r.nama}</strong>
+                        <div>
+                            <button class="btn-small btn-outline" onclick="verifikasiPassword(() => editResep('${r.id}'))">✏️</button>
+                            <button class="btn-small btn-secondary" onclick="verifikasiPassword(() => hapusResep('${r.id}'))">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="text-small">Hasil per batch: ${r.hasilPerBatch} unit</div>
+                    <div class="text-small">Bahan: ${bahanText.slice(0, -2)}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        async function simpanResep() {
+            const id = document.getElementById('resepId').value;
+            const nama = document.getElementById('resepNama').value.trim();
+            const hasil = parseFloat(document.getElementById('resepHasil').value);
+            if (!nama || isNaN(hasil)) return alert('Isi nama dan hasil');
+
+            const rows = document.querySelectorAll('.ingredient-row');
+            const bahan = [];
+            for (let row of rows) {
+                const select = row.querySelector('.ingBahan');
+                const jumlah = parseFloat(row.querySelector('.ingJumlah').value);
+                if (!select.value || isNaN(jumlah) || jumlah <= 0) continue;
+                bahan.push({ bahanId: select.value, jumlah });
+            }
+            if (bahan.length === 0) return alert('Minimal satu bahan');
+
+            const data = { nama, hasilPerBatch: hasil, bahan };
+
+            if (id) {
+                await db.collection('resep').doc(id).set(data);
+            } else {
+                await db.collection('resep').add(data);
+            }
+
+            await loadAllFromFirestore();
+            resetFormResep();
+        }
+
+        function resetFormResep() {
+            document.getElementById('resepId').value = '';
+            document.getElementById('resepNama').value = '';
+            document.getElementById('resepHasil').value = '1';
+            document.getElementById('ingredientList').innerHTML = '';
+            tambahIngredient();
+        }
+
+        function editResep(id) {
+            const r = resepList.find(r => r.id == id);
+            if (!r) return;
+            document.getElementById('resepId').value = r.id;
+            document.getElementById('resepNama').value = r.nama;
+            document.getElementById('resepHasil').value = r.hasilPerBatch;
+            document.getElementById('ingredientList').innerHTML = '';
+            r.bahan.forEach(b => {
+                const div = document.createElement('div');
+                div.className = 'ingredient-row flex';
+                div.style.marginBottom = '8px';
+                div.style.alignItems = 'center';
+                div.innerHTML = `
+                    <select class="ingBahan" style="flex:2;" required onchange="updateSatuan(this)">
+                        <option value="">Pilih Bahan</option>
+                        ${bahanBaku.map(bahan => `<option value="${bahan.id}" ${bahan.id == b.bahanId ? 'selected' : ''}>${bahan.nama}</option>`).join('')}
+                    </select>
+                    <input type="number" class="ingJumlah" placeholder="Jumlah" style="flex:1;" step="0.001" min="0" value="${b.jumlah}" required>
+                    <span class="satuan" style="min-width:40px;"></span>
+                    <button type="button" class="btn-small btn-secondary" onclick="this.parentElement.remove()">✖</button>
+                `;
+                document.getElementById('ingredientList').appendChild(div);
+                const bahanTerpilih = bahanBaku.find(bb => bb.id == b.bahanId);
+                if (bahanTerpilih) {
+                    div.querySelector('.satuan').innerText = bahanTerpilih.satuan;
+                }
+            });
+        }
+
+        async function hapusResep(id) {
+            if (confirm('Hapus resep?')) {
+                await db.collection('resep').doc(id).delete();
+                await loadAllFromFirestore();
+            }
+        }
+
+        // ==================== PRODUKSI ====================
+        function populateResepSelect() {
+            const select = document.getElementById('produksiResep');
+            if (!select) return;
+            select.innerHTML = '<option value="">Pilih Resep</option>';
+            resepList.forEach(r => {
+                select.innerHTML += `<option value="${r.id}">${r.nama}</option>`;
+            });
+        }
+
+        function getDataProduksiFromForm() {
+            const resepId = document.getElementById('produksiResep').value;
+            const batch = parseInt(document.getElementById('produksiBatch').value);
+            const tanggal = document.getElementById('produksiTanggal').value;
+            const catatan = document.getElementById('produksiCatatan').value;
+            const biayaTenagaKerja = parseFloat(document.getElementById('biayaTenagaKerja').value) || 0;
+            const biayaOperasional = parseFloat(document.getElementById('biayaOperasional').value) || 0;
+            const biayaKemasan = parseFloat(document.getElementById('biayaKemasan').value) || 0;
+
+            return { resepId, batch, tanggal, catatan, biayaTenagaKerja, biayaOperasional, biayaKemasan };
+        }
+
+        function validasiProduksi(data, cekBahan = true) {
+            if (!data.resepId || isNaN(data.batch) || data.batch < 1 || !data.tanggal) {
+                alert('Lengkapi data (resep, batch, tanggal)');
+                return false;
+            }
+            const resep = resepList.find(r => r.id == data.resepId);
+            if (!resep) {
+                alert('Resep tidak ditemukan');
+                return false;
+            }
+            if (cekBahan) {
+                for (let b of resep.bahan) {
+                    const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                    const kebutuhan = b.jumlah * data.batch;
+                    if (!bahan || bahan.stok < kebutuhan) {
+                        alert(`Stok ${bahan ? bahan.nama : '?'} tidak cukup. Butuh ${kebutuhan}, tersedia ${bahan ? bahan.stok : 0}`);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function prosesProduksi() {
+            const data = getDataProduksiFromForm();
+            if (!validasiProduksi(data, false)) return;
+
+            const resep = resepList.find(r => r.id == data.resepId);
+            if (!resep) return;
+
+            let bahanHtml = '';
+            resep.bahan.forEach(b => {
+                const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                const namaBahan = bahan ? bahan.nama : '?';
+                const satuan = bahan ? bahan.satuan : '';
+                const kebutuhan = b.jumlah * data.batch;
+                bahanHtml += `<tr>
+                    <td>${namaBahan}</td>
+                    <td>${kebutuhan} ${satuan}</td>
+                </tr>`;
+            });
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Instruksi Produksi</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #5a3e2b; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background: #d4a373; color: white; padding: 8px; }
+                        td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        .info { margin-bottom: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🍞 RotiKu Pro - Instruksi Produksi</h1>
+                    <div class="info">
+                        <p><strong>Produk:</strong> ${resep.nama}</p>
+                        <p><strong>Tanggal Produksi:</strong> ${data.tanggal}</p>
+                        <p><strong>Jumlah Batch:</strong> ${data.batch}</p>
+                        <p><strong>Hasil per Batch:</strong> ${resep.hasilPerBatch} unit</p>
+                        <p><strong>Total Hasil:</strong> ${resep.hasilPerBatch * data.batch} unit</p>
+                        <p><strong>Catatan:</strong> ${data.catatan || '-'}</p>
+                    </div>
+                    <h2>Kebutuhan Bahan:</h2>
+                    <table>
+                        <thead>
+                            <tr><th>Bahan</th><th>Jumlah</th></tr>
+                        </thead>
+                        <tbody>
+                            ${bahanHtml}
+                        </tbody>
+                    </table>
+                    <p style="margin-top:40px;">Instruksi ini dicetak pada ${new Date().toLocaleString()}</p>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        function tanyaProdukGagal() {
+            const data = getDataProduksiFromForm();
+            if (!validasiProduksi(data, true)) return;
+
+            const resep = resepList.find(r => r.id == data.resepId);
+            if (!resep) return;
+
+            const totalHasil = resep.hasilPerBatch * data.batch;
+            dataProduksiSementara = { ...data, resep, totalHasil };
+
+            document.getElementById('totalHasilInfo').innerHTML = 
+                `Total hasil produksi: <strong>${totalHasil} unit</strong><br>Produk: ${resep.nama}`;
+            document.getElementById('modalProdukGagal').value = 0;
+            document.getElementById('modalProdukGagal').max = totalHasil;
+            document.getElementById('produkGagalModal').classList.add('active');
+        }
+
+        function tutupModal() {
+            document.getElementById('produkGagalModal').classList.remove('active');
+            dataProduksiSementara = null;
+        }
+
+        async function simpanProduksiDenganGagal() {
+            if (!dataProduksiSementara) return;
+
+            const produkGagal = parseInt(document.getElementById('modalProdukGagal').value) || 0;
+            const { resep, ...data } = dataProduksiSementara;
+            const totalHasil = resep.hasilPerBatch * data.batch;
+
+            if (produkGagal < 0 || produkGagal > totalHasil) {
+                alert(`Jumlah produk gagal harus antara 0 - ${totalHasil}`);
+                return;
+            }
+
+            const produkBagus = totalHasil - produkGagal;
+
+            // Kurangi stok bahan
+            for (let b of resep.bahan) {
+                const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                if (bahan) {
+                    bahan.stok -= b.jumlah * data.batch;
+                    await db.collection('bahanBaku').doc(b.bahanId).update({ stok: bahan.stok });
+                }
+            }
+
+            // Tambah stok produk jadi
+            let produk = produkJadi.find(p => p.resepId == resep.id);
+            if (produk) {
+                produk.stok += produkBagus;
+                await db.collection('produkJadi').doc(produk.id).update({ stok: produk.stok });
+            } else {
+                const newProduk = { nama: resep.nama, stok: produkBagus, hargaJual: 0, resepId: resep.id };
+                const docRef = await db.collection('produkJadi').add(newProduk);
+                produkJadi.push({ id: docRef.id, ...newProduk });
+            }
+
+            // Tambah afkir jika ada gagal
+            if (produkGagal > 0) {
+                const newAfkir = {
+                    produkId: resep.id,
+                    namaProduk: resep.nama,
+                    jenisAfkir: 'gagal',
+                    jumlah: produkGagal,
+                    tanggalMasuk: data.tanggal,
+                    sumber: 'produksi',
+                    sumberId: null, // akan diupdate setelah produksiId didapat
+                    status: 'tersedia'
+                };
+                const afkirRef = await db.collection('afkir').add(newAfkir);
+                newAfkir.id = afkirRef.id;
+                afkirList.push(newAfkir);
+            }
+
+            // Simpan produksi
+            const produksiData = {
+                resepId: resep.id,
+                batch: data.batch,
+                tanggal: data.tanggal,
+                catatan: data.catatan,
+                hasilUnit: totalHasil,
+                produkBagus,
+                produkGagal,
+                biayaTenagaKerja: data.biayaTenagaKerja,
+                biayaOperasional: data.biayaOperasional,
+                biayaKemasan: data.biayaKemasan
+            };
+            const produksiRef = await db.collection('produksi').add(produksiData);
+            produksiList.push({ id: produksiRef.id, ...produksiData });
+
+            // Update sumberId di afkir jika ada
+            if (produkGagal > 0) {
+                const lastAfkir = afkirList[afkirList.length - 1];
+                if (lastAfkir) {
+                    lastAfkir.sumberId = produksiRef.id;
+                    await db.collection('afkir').doc(lastAfkir.id).update({ sumberId: produksiRef.id });
+                }
+            }
+
+            await loadAllFromFirestore(); // reload untuk memastikan konsistensi
+
+            document.getElementById('produksiResep').value = '';
+            document.getElementById('produksiBatch').value = '1';
+            document.getElementById('produksiTanggal').value = '';
+            document.getElementById('produksiCatatan').value = '';
+            document.getElementById('biayaTenagaKerja').value = '0';
+            document.getElementById('biayaOperasional').value = '0';
+            document.getElementById('biayaKemasan').value = '0';
+
+            tutupModal();
+            alert('Produksi berhasil disimpan');
+        }
+
+        function renderProduksi() {
+            populateResepSelect();
+
+            const container = document.getElementById('daftarProduksi');
+            if (produksiList.length === 0) {
+                container.innerHTML = '<div class="list-item">Belum ada produksi.</div>';
+                return;
+            }
+            let html = '';
+            produksiList.slice().reverse().forEach(p => {
+                html += `<div class="list-item">
+                    <div><strong>${getResepNama(p.resepId)}</strong> - ${p.tanggal}</div>
+                    <div class="text-small">Batch: ${p.batch} | Total Hasil: ${p.hasilUnit} unit (Bagus: ${p.produkBagus}, Gagal: ${p.produkGagal})</div>
+                    <div class="text-small">Biaya: TK Rp${formatNumber(p.biayaTenagaKerja)}, Op Rp${formatNumber(p.biayaOperasional)}, Kemas Rp${formatNumber(p.biayaKemasan)}</div>
+                    <div class="text-small">Catatan: ${p.catatan || '-'}</div>
+                    <div style="margin-top:8px;">
+                        <button class="btn-small btn-outline" onclick="printInstruksi('${p.id}')">🖨️ Cetak Instruksi</button>
+                        <button class="btn-small btn-secondary" onclick="shareInstruksiViaWA('${p.id}')">📱 WA</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function printInstruksi(produksiId) {
+            const produksi = produksiList.find(p => p.id == produksiId);
+            if (!produksi) return alert('Data produksi tidak ditemukan');
+
+            const resep = resepList.find(r => r.id == produksi.resepId);
+            if (!resep) return alert('Resep tidak ditemukan');
+
+            let bahanHtml = '';
+            resep.bahan.forEach(b => {
+                const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                const namaBahan = bahan ? bahan.nama : '?';
+                const satuan = bahan ? bahan.satuan : '';
+                const kebutuhan = b.jumlah * produksi.batch;
+                bahanHtml += `<tr>
+                    <td>${namaBahan}</td>
+                    <td>${kebutuhan} ${satuan}</td>
+                </tr>`;
+            });
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Instruksi Produksi #${produksi.id}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #5a3e2b; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background: #d4a373; color: white; padding: 8px; }
+                        td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        .info { margin-bottom: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🍞 RotiKu Pro - Instruksi Produksi</h1>
+                    <div class="info">
+                        <p><strong>Produk:</strong> ${resep.nama}</p>
+                        <p><strong>Tanggal Produksi:</strong> ${produksi.tanggal}</p>
+                        <p><strong>Jumlah Batch:</strong> ${produksi.batch}</p>
+                        <p><strong>Hasil per Batch:</strong> ${resep.hasilPerBatch} unit</p>
+                        <p><strong>Total Hasil:</strong> ${produksi.hasilUnit} unit</p>
+                        <p><strong>Produk Bagus:</strong> ${produksi.produkBagus} unit</p>
+                        <p><strong>Produk Gagal:</strong> ${produksi.produkGagal} unit</p>
+                        <p><strong>Biaya Tenaga Kerja:</strong> Rp${formatNumber(produksi.biayaTenagaKerja)}</p>
+                        <p><strong>Biaya Operasional:</strong> Rp${formatNumber(produksi.biayaOperasional)}</p>
+                        <p><strong>Biaya Kemasan:</strong> Rp${formatNumber(produksi.biayaKemasan)}</p>
+                        <p><strong>Catatan:</strong> ${produksi.catatan || '-'}</p>
+                    </div>
+                    <h2>Kebutuhan Bahan:</h2>
+                    <table>
+                        <thead>
+                            <tr><th>Bahan</th><th>Jumlah</th></tr>
+                        </thead>
+                        <tbody>
+                            ${bahanHtml}
+                        </tbody>
+                    </table>
+                    <p style="margin-top:40px;">Instruksi ini dicetak pada ${new Date().toLocaleString()}</p>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        function shareInstruksiViaWA(produksiId) {
+            const produksi = produksiList.find(p => p.id == produksiId);
+            if (!produksi) return;
+            const resep = resepList.find(r => r.id == produksi.resepId);
+            if (!resep) return;
+
+            let bahanText = '';
+            resep.bahan.forEach(b => {
+                const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                if (bahan) {
+                    const kebutuhan = b.jumlah * produksi.batch;
+                    bahanText += `- ${bahan.nama}: ${kebutuhan} ${bahan.satuan}\n`;
+                }
+            });
+
+            let message = `*Instruksi Produksi #${produksi.id}*\n`;
+            message += `Produk: ${resep.nama}\n`;
+            message += `Tanggal: ${produksi.tanggal}\n`;
+            message += `Batch: ${produksi.batch}\n`;
+            message += `Hasil per Batch: ${resep.hasilPerBatch} unit\n`;
+            message += `Total Hasil: ${produksi.hasilUnit} unit\n`;
+            message += `Produk Bagus: ${produksi.produkBagus}\n`;
+            message += `Produk Gagal: ${produksi.produkGagal}\n`;
+            message += `Biaya: TK Rp${formatNumber(produksi.biayaTenagaKerja)}, Op Rp${formatNumber(produksi.biayaOperasional)}, Kemas Rp${formatNumber(produksi.biayaKemasan)}\n`;
+            message += `\n*Kebutuhan Bahan:*\n${bahanText}`;
+
+            const encoded = encodeURIComponent(message);
+            window.open(`https://wa.me/?text=${encoded}`, '_blank');
+        }
+
+        // ==================== KALKULATOR BIAYA ====================
+        function kalkulatorBiaya() {
+            const data = getDataProduksiFromForm();
+            if (!data.resepId || isNaN(data.batch) || data.batch < 1 || !data.tanggal) {
+                alert('Lengkapi data (resep, batch, tanggal) terlebih dahulu');
+                return;
+            }
+            const resep = resepList.find(r => r.id == data.resepId);
+            if (!resep) {
+                alert('Resep tidak ditemukan');
+                return;
+            }
+
+            let bahanHtml = '';
+            let totalBahan = 0;
+            resep.bahan.forEach(b => {
+                const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                if (bahan) {
+                    const jumlah = b.jumlah * data.batch;
+                    const subTotal = jumlah * bahan.harga;
+                    totalBahan += subTotal;
+                    bahanHtml += `<tr>
+                        <td>${bahan.nama}</td>
+                        <td>${jumlah.toFixed(3)} ${bahan.satuan}</td>
+                        <td>Rp${formatNumber(bahan.harga)}</td>
+                        <td>Rp${formatNumber(Math.round(subTotal))}</td>
+                    </tr>`;
+                }
+            });
+
+            const totalBiaya = totalBahan + data.biayaTenagaKerja + data.biayaOperasional + data.biayaKemasan;
+            const biayaPerUnit = totalBiaya / resep.hasilPerBatch;
+
+            const content = `
+                <p><strong>Produk:</strong> ${resep.nama}</p>
+                <p><strong>Jumlah Batch:</strong> ${data.batch}</p>
+                <p><strong>Unit per Batch:</strong> ${resep.hasilPerBatch} unit</p>
+                <p><strong>Tanggal:</strong> ${data.tanggal}</p>
+                <table style="width:100%; border-collapse: collapse; margin-top: 16px;">
+                    <thead>
+                        <tr><th>Bahan</th><th>Jumlah</th><th>Harga Satuan</th><th>Subtotal</th></tr>
+                    </thead>
+                    <tbody>
+                        ${bahanHtml}
+                    </tbody>
+                </table>
+                <p><strong>Total Biaya Bahan:</strong> Rp${formatNumber(Math.round(totalBahan))}</p>
+                <p><strong>Biaya Tenaga Kerja:</strong> Rp${formatNumber(data.biayaTenagaKerja)}</p>
+                <p><strong>Biaya Operasional (Gas & Listrik):</strong> Rp${formatNumber(data.biayaOperasional)}</p>
+                <p><strong>Biaya Kemasan:</strong> Rp${formatNumber(data.biayaKemasan)}</p>
+                <p><strong>Total Biaya Produksi per Batch:</strong> Rp${formatNumber(Math.round(totalBiaya))}</p>
+                <p><strong>Total Biaya per Unit:</strong> Rp${formatNumber(Math.round(biayaPerUnit))}</p>
+            `;
+
+            document.getElementById('biayaModalContent').innerHTML = content;
+            document.getElementById('biayaModal').classList.add('active');
+        }
+
+        function tutupBiayaModal() {
+            document.getElementById('biayaModal').classList.remove('active');
+        }
+
+        function cetakBiaya() {
+            const content = document.getElementById('biayaModalContent').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Rincian Biaya Produksi</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #5a3e2b; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background: #d4a373; color: white; padding: 8px; }
+                        td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🍞 RotiKu Pro - Rincian Biaya Produksi</h1>
+                    ${content}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        // ==================== STOK PRODUK ====================
+        function renderStokProduk() {
+            const tbody = document.getElementById('tbodyStokProduk');
+            if (produkJadi.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada produk jadi.</td></tr>';
+            } else {
+                let html = '';
+                produkJadi.forEach(p => {
+                    html += `<tr>
+                        <td>${p.nama}</td>
+                        <td>${p.stok} unit</td>
+                        <td>Rp${formatNumber(p.hargaJual || 0)}</td>
+                        <td>
+                            <button class="btn-small btn-outline" onclick="verifikasiPassword(() => editStokProduk('${p.id}'))">✏️ Stok</button>
+                            <button class="btn-small btn-warning" onclick="verifikasiPassword(() => aturHargaJual('${p.id}'))">💰 Harga</button>
+                            <button class="btn-small btn-danger" onclick="verifikasiPassword(() => hapusProduk('${p.id}'))">🗑️</button>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            }
+        }
+
+        async function aturHargaJual(id) {
+            const p = produkJadi.find(p => p.id == id);
+            if (!p) return;
+            const baru = prompt('Masukkan harga jual per unit (Rp)', p.hargaJual || 0);
+            if (baru !== null && !isNaN(parseFloat(baru))) {
+                p.hargaJual = parseFloat(baru);
+                await db.collection('produkJadi').doc(id).update({ hargaJual: p.hargaJual });
+                renderStokProduk();
+                alert('Harga berhasil diupdate');
+            }
+        }
+
+        async function hapusProduk(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus produk ini? Data produksi terkait tidak akan dihapus.')) {
+                await db.collection('produkJadi').doc(id).delete();
+                await loadAllFromFirestore();
+            }
+        }
+
+        function editStokProduk(id) {
+            const p = produkJadi.find(p => p.id == id);
+            if (!p) return;
+            document.getElementById('editStokId').value = p.id;
+            document.getElementById('editStokNama').value = p.nama;
+            document.getElementById('editStokSekarang').value = p.stok;
+            document.getElementById('editStokBaru').value = p.stok;
+            document.getElementById('editStokModal').classList.add('active');
+        }
+
+        function tutupEditStokModal() {
+            document.getElementById('editStokModal').classList.remove('active');
+        }
+
+        async function simpanEditStok() {
+            const id = document.getElementById('editStokId').value;
+            const stokBaru = parseInt(document.getElementById('editStokBaru').value);
+            if (isNaN(stokBaru) || stokBaru < 0) {
+                alert('Stok baru harus diisi dengan angka positif');
+                return;
+            }
+            await db.collection('produkJadi').doc(id).update({ stok: stokBaru });
+            await loadAllFromFirestore();
+            tutupEditStokModal();
+            alert('Stok berhasil diperbarui');
+        }
+
+        // ==================== ORDER ====================
+        function tambahItemOrder() {
+            const div = document.createElement('div');
+            div.className = 'order-item-row flex';
+            div.style.marginBottom = '8px';
+            div.style.alignItems = 'center';
+            let options = '<option value="">Pilih Produk</option>';
+            resepList.forEach(r => {
+                options += `<option value="${r.id}">${r.nama}</option>`;
+            });
+            div.innerHTML = `
+                <select class="orderProduk" style="flex:2;" required onchange="updateHargaItem(this)">
+                    ${options}
+                </select>
+                <input type="number" class="orderJumlah" placeholder="Jml" style="flex:1;" min="1" required oninput="updateSubtotal(this)">
+                <span class="hargaSatuan" style="min-width:80px;">Rp0</span>
+                <span class="subtotal" style="min-width:100px;">Rp0</span>
+                <button type="button" class="btn-small btn-secondary" onclick="this.parentElement.remove(); updateOrderTotal();">✖</button>
+            `;
+            document.getElementById('orderItems').appendChild(div);
+        }
+
+        function updateHargaItem(select) {
+            const row = select.closest('.order-item-row');
+            const resepId = select.value;
+            const produk = produkJadi.find(p => p.resepId == resepId);
+            const harga = produk ? (produk.hargaJual || 0) : 0;
+            const spanHarga = row.querySelector('.hargaSatuan');
+            spanHarga.innerText = 'Rp' + formatNumber(harga);
+            updateSubtotal(row.querySelector('.orderJumlah'));
+        }
+
+        function updateSubtotal(input) {
+            const row = input.closest('.order-item-row');
+            const jumlah = parseFloat(input.value) || 0;
+            const spanHarga = row.querySelector('.hargaSatuan');
+            const harga = parseInt(spanHarga.innerText.replace(/[^0-9]/g, '')) || 0;
+            const subtotal = jumlah * harga;
+            row.querySelector('.subtotal').innerText = 'Rp' + formatNumber(subtotal);
+            updateOrderTotal();
+        }
+
+        function updateOrderTotal() {
+            const rows = document.querySelectorAll('.order-item-row');
+            let total = 0;
+            rows.forEach(row => {
+                const subtotalSpan = row.querySelector('.subtotal');
+                const subtotal = parseInt(subtotalSpan.innerText.replace(/[^0-9]/g, '')) || 0;
+                total += subtotal;
+            });
+            document.getElementById('totalDisplay').innerText = 'Rp' + formatNumber(total);
+
+            const tipe = document.querySelector('input[name="tipeOrder"]:checked').value;
+            const dpGroup = document.getElementById('dpGroup');
+            const dpInput = document.getElementById('orderDP');
+            const lunasCheck = document.getElementById('lunasCheckbox');
+            const sisaText = document.getElementById('sisaText');
+            if (tipe === 'inden') {
+                dpGroup.style.display = 'block';
+                let dp = Math.round(total * 0.5 / 1000) * 1000;
+                if (lunasCheck.checked) {
+                    dp = total;
+                }
+                dpInput.value = dp;
+                const sisa = total - dp;
+                sisaText.innerText = `Sisa: Rp${formatNumber(sisa)}`;
+            } else {
+                dpGroup.style.display = 'none';
+                dpInput.value = 0;
+                lunasCheck.checked = false;
+                sisaText.innerText = '';
+            }
+        }
+
+        document.querySelectorAll('input[name="tipeOrder"]').forEach(radio => {
+            radio.addEventListener('change', updateOrderTotal);
+        });
+        document.getElementById('lunasCheckbox').addEventListener('change', updateOrderTotal);
+        document.getElementById('orderDP').addEventListener('input', function() {
+            const total = parseInt(document.getElementById('totalDisplay').innerText.replace(/[^0-9]/g, '')) || 0;
+            const dp = parseInt(this.value) || 0;
+            const sisa = total - dp;
+            document.getElementById('sisaText').innerText = `Sisa: Rp${formatNumber(sisa)}`;
+        });
+
+        async function simpanOrder() {
+            const id = document.getElementById('orderId').value;
+            const customer = document.getElementById('orderCustomer').value.trim() || 'Umum';
+            const phone = document.getElementById('orderPhone').value.trim();
+            const alamat = document.getElementById('orderAlamat').value.trim();
+            const tanggal = document.getElementById('orderTanggal').value;
+            const tipe = document.querySelector('input[name="tipeOrder"]:checked').value;
+            const tanggalKirim = document.getElementById('orderTanggalKirim').value;
+            const status = document.getElementById('orderStatus').value;
+            const dp = tipe === 'inden' ? parseInt(document.getElementById('orderDP').value) || 0 : 0;
+
+            if (!tanggal) return alert('Pilih tanggal order');
+
+            const rows = document.querySelectorAll('.order-item-row');
+            const items = [];
+            for (let row of rows) {
+                const resepId = row.querySelector('.orderProduk').value;
+                const jumlah = parseInt(row.querySelector('.orderJumlah').value);
+                if (!resepId || isNaN(jumlah) || jumlah <= 0) continue;
+                const produk = produkJadi.find(p => p.resepId == resepId);
+                const hargaJual = produk ? (produk.hargaJual || 0) : 0;
+                items.push({ resepId, jumlah, hargaSaatItu: hargaJual });
+            }
+            if (items.length === 0) return alert('Minimal satu item');
+
+            const total = items.reduce((sum, it) => sum + (it.hargaSaatItu * it.jumlah), 0);
+
+            if (tipe === 'langsung') {
+                for (let item of items) {
+                    const produk = produkJadi.find(p => p.resepId == item.resepId);
+                    if (!produk || produk.stok < item.jumlah) {
+                        alert(`Stok produk ${getNamaProdukByResepId(item.resepId)} tidak cukup. Tersedia: ${produk ? produk.stok : 0}`);
+                        return;
+                    }
+                }
+                if (status === 'selesai') {
+                    for (let item of items) {
+                        const produk = produkJadi.find(p => p.resepId == item.resepId);
+                        if (produk) {
+                            produk.stok -= item.jumlah;
+                            await db.collection('produkJadi').doc(produk.id).update({ stok: produk.stok });
+                        }
+                    }
+                }
+            } else {
+                if (dp > total) {
+                    alert('Uang muka tidak boleh melebihi total');
+                    return;
+                }
+            }
+
+            const orderData = {
+                customer, phone, alamat, tanggal, tipe, tanggalKirim: tanggalKirim || null, status, items, total,
+                dp: tipe === 'inden' ? dp : 0,
+                sisa: tipe === 'inden' ? total - dp : 0
+            };
+
+            if (id) {
+                await db.collection('order').doc(id).set(orderData);
+            } else {
+                await db.collection('order').add(orderData);
+            }
+
+            await loadAllFromFirestore();
+            resetFormOrder();
+        }
+
+        function resetFormOrder() {
+            document.getElementById('orderId').value = '';
+            document.getElementById('orderCustomer').value = 'Umum';
+            document.getElementById('orderPhone').value = '';
+            document.getElementById('orderAlamat').value = '';
+            document.getElementById('orderTanggal').value = '';
+            document.querySelector('input[name="tipeOrder"][value="langsung"]').checked = true;
+            document.getElementById('orderTanggalKirim').value = '';
+            document.getElementById('orderStatus').value = 'pending';
+            document.getElementById('orderItems').innerHTML = '';
+            document.getElementById('dpGroup').style.display = 'none';
+            document.getElementById('orderDP').value = 0;
+            document.getElementById('lunasCheckbox').checked = false;
+            document.getElementById('sisaText').innerText = '';
+            document.getElementById('totalDisplay').innerText = 'Rp0';
+            tambahItemOrder();
+        }
+
+        function renderOrder() {
+            const container = document.getElementById('daftarOrder');
+            if (orderList.length === 0) {
+                container.innerHTML = '<div class="list-item">Belum ada order.</div>';
+                return;
+            }
+            let html = '';
+            orderList.slice().reverse().forEach(o => {
+                let itemStr = o.items.map(it => `${getNamaProdukByResepId(it.resepId)} x${it.jumlah} @Rp${formatNumber(it.hargaSaatItu)}`).join(', ');
+                let tipeBadge = o.tipe === 'inden' ? 'badge-warning' : 'badge-success';
+                let badgeText = o.tipe === 'inden' ? '🕒 Inden' : '⚡ Langsung';
+                let dpInfo = o.tipe === 'inden' ? ` | DP: Rp${formatNumber(o.dp)} (Sisa: Rp${formatNumber(o.sisa)})` : '';
+                let phoneInfo = o.phone ? ` | Telp: ${o.phone}` : '';
+                let alamatInfo = o.alamat ? `<br>Alamat: ${o.alamat}` : '';
+                html += `<div class="list-item">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>#${o.id} - ${o.customer}${phoneInfo}</strong>
+                        <span class="badge ${tipeBadge}">${badgeText} | ${o.status}</span>
+                    </div>
+                    <div class="text-small">Tgl Order: ${o.tanggal} ${o.tanggalKirim ? '| Kirim: '+o.tanggalKirim : ''}</div>
+                    <div class="text-small">Total: Rp${formatNumber(o.total)}${dpInfo}</div>
+                    <div class="text-small">${itemStr}${alamatInfo}</div>
+                    <div style="margin-top:8px;">
+                        <button class="btn-small btn-outline" onclick="verifikasiPassword(() => editOrder('${o.id}'))">✏️ Edit</button>
+                        <button class="btn-small btn-secondary" onclick="verifikasiPassword(() => hapusOrder('${o.id}'))">🗑️ Hapus</button>
+                        <button class="btn-small btn-secondary" onclick="printOrder('${o.id}')">🖨️ Cetak Bukti</button>
+                        <button class="btn-small btn-secondary" onclick="shareOrderViaWA('${o.id}')">📱 WA</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function editOrder(id) {
+            const o = orderList.find(o => o.id == id);
+            if (!o) return;
+            document.getElementById('orderId').value = o.id;
+            document.getElementById('orderCustomer').value = o.customer;
+            document.getElementById('orderPhone').value = o.phone || '';
+            document.getElementById('orderAlamat').value = o.alamat || '';
+            document.getElementById('orderTanggal').value = o.tanggal;
+            if (o.tipe === 'inden') {
+                document.querySelector('input[name="tipeOrder"][value="inden"]').checked = true;
+            } else {
+                document.querySelector('input[name="tipeOrder"][value="langsung"]').checked = true;
+            }
+            document.getElementById('orderTanggalKirim').value = o.tanggalKirim || '';
+            document.getElementById('orderStatus').value = o.status;
+            document.getElementById('orderItems').innerHTML = '';
+            o.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'order-item-row flex';
+                div.style.marginBottom = '8px';
+                div.style.alignItems = 'center';
+                let options = '<option value="">Pilih Produk</option>';
+                resepList.forEach(r => {
+                    options += `<option value="${r.id}" ${r.id == item.resepId ? 'selected' : ''}>${r.nama}</option>`;
+                });
+                div.innerHTML = `
+                    <select class="orderProduk" style="flex:2;" required onchange="updateHargaItem(this)">
+                        ${options}
+                    </select>
+                    <input type="number" class="orderJumlah" value="${item.jumlah}" style="flex:1;" min="1" required oninput="updateSubtotal(this)">
+                    <span class="hargaSatuan" style="min-width:80px;">Rp${formatNumber(item.hargaSaatItu)}</span>
+                    <span class="subtotal" style="min-width:100px;">Rp${formatNumber(item.hargaSaatItu * item.jumlah)}</span>
+                    <button type="button" class="btn-small btn-secondary" onclick="this.parentElement.remove(); updateOrderTotal();">✖</button>
+                `;
+                document.getElementById('orderItems').appendChild(div);
+            });
+            if (o.tipe === 'inden') {
+                document.getElementById('orderDP').value = o.dp;
+                if (o.dp === o.total) {
+                    document.getElementById('lunasCheckbox').checked = true;
+                } else {
+                    document.getElementById('lunasCheckbox').checked = false;
+                }
+            }
+            updateOrderTotal();
+        }
+
+        async function hapusOrder(id) {
+            if (confirm('Hapus order?')) {
+                await db.collection('order').doc(id).delete();
+                await loadAllFromFirestore();
+            }
+        }
+
+        function shareOrderViaWA(id) {
+            const order = orderList.find(o => o.id == id);
+            if (!order) return;
+
+            let itemsText = order.items.map(it => {
+                const nama = getNamaProdukByResepId(it.resepId);
+                return `- ${nama} x${it.jumlah} @Rp${formatNumber(it.hargaSaatItu)} = Rp${formatNumber(it.hargaSaatItu * it.jumlah)}`;
+            }).join('\n');
+
+            let message = `*Bukti Order #${order.id}*\n`;
+            message += `Customer: ${order.customer} ${order.phone ? '- ' + order.phone : ''}\n`;
+            if (order.alamat) message += `Alamat: ${order.alamat}\n`;
+            message += `Tanggal: ${order.tanggal}\n`;
+            message += `Tipe: ${order.tipe === 'inden' ? 'Inden' : 'Langsung'}\n`;
+            message += `Status: ${order.status}\n`;
+            if (order.tipe === 'inden') {
+                message += `DP: Rp${formatNumber(order.dp)}\n`;
+                message += `Sisa: Rp${formatNumber(order.sisa)}\n`;
+            }
+            message += `\n*Item:*\n${itemsText}\n`;
+            message += `\n*Total: Rp${formatNumber(order.total)}*`;
+
+            const encoded = encodeURIComponent(message);
+            window.open(`https://wa.me/?text=${encoded}`, '_blank');
+        }
+
+        function printOrder(id) {
+            const order = orderList.find(o => o.id == id);
+            if (!order) return;
+
+            let itemsHtml = '';
+            order.items.forEach(item => {
+                itemsHtml += `<tr>
+                    <td>${getNamaProdukByResepId(item.resepId)}</td>
+                    <td>${item.jumlah}</td>
+                    <td>Rp${formatNumber(item.hargaSaatItu)}</td>
+                    <td>Rp${formatNumber(item.hargaSaatItu * item.jumlah)}</td>
+                </tr>`;
+            });
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Bukti Order #${order.id}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #5a3e2b; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background: #d4a373; color: white; padding: 8px; }
+                        td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        .total { font-weight: bold; font-size: 1.2em; margin-top: 20px; }
+                        .signature { margin-top: 50px; display: flex; justify-content: space-between; }
+                        .signature div { width: 200px; }
+                        .signature p { margin-top: 40px; border-top: 1px solid #000; padding-top: 5px; text-align: center; }
+                        .footer { margin-top: 40px; text-align: center; font-size: 0.9em; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🍞 RotiKu Pro</h1>
+                    <h2>Bukti Order #${order.id}</h2>
+                    <p><strong>Customer:</strong> ${order.customer} ${order.phone ? ' - Telp: ' + order.phone : ''}</p>
+                    ${order.alamat ? `<p><strong>Alamat:</strong> ${order.alamat}</p>` : ''}
+                    <p><strong>Tanggal Order:</strong> ${order.tanggal}</p>
+                    <p><strong>Tipe Order:</strong> ${order.tipe === 'inden' ? 'Inden' : 'Langsung'}</p>
+                    ${order.tanggalKirim ? `<p><strong>Tanggal Kirim:</strong> ${order.tanggalKirim}</p>` : ''}
+                    <p><strong>Status:</strong> ${order.status}</p>
+                    ${order.tipe === 'inden' ? `<p><strong>Uang Muka:</strong> Rp${formatNumber(order.dp)}</p><p><strong>Sisa:</strong> Rp${formatNumber(order.sisa)}</p>` : ''}
+
+                    <table>
+                        <thead>
+                            <tr><th>Produk</th><th>Jumlah</th><th>Harga Satuan</th><th>Subtotal</th></tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+
+                    <div class="total">Total: Rp${formatNumber(order.total)}</div>
+
+                    <div class="signature">
+                        <div>
+                            <p>Customer</p>
+                            <p style="border: none; margin-top: 10px;">( _____________ )</p>
+                        </div>
+                        <div>
+                            <p>Admin</p>
+                            <p style="border: none; margin-top: 10px;">( _____________ )</p>
+                        </div>
+                    </div>
+
+                    <div class="footer">Terima kasih atas order Anda.</div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        // ==================== RETUR ====================
+        function populateProdukUntukRetur() {
+            const select = document.getElementById('returProduk');
+            select.innerHTML = '<option value="">Pilih Produk</option>';
+            produkJadi.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.nama} (Stok: ${p.stok})</option>`;
+            });
+        }
+
+        function populateOrderSelect() {
+            const select = document.getElementById('returOrder');
+            select.innerHTML = '<option value="">-- Langsung (tanpa order) --</option>';
+            orderList.filter(o => o.status === 'selesai').forEach(o => {
+                select.innerHTML += `<option value="${o.id}">#${o.id} - ${o.customer} (${o.tanggal})</option>`;
+            });
+        }
+
+        async function simpanRetur() {
+            const orderId = document.getElementById('returOrder').value;
+            const produkId = document.getElementById('returProduk').value;
+            const jumlah = parseInt(document.getElementById('returJumlah').value);
+            const alasan = document.getElementById('returAlasan').value;
+            const keterangan = document.getElementById('returKeterangan').value;
+            
+            if (!produkId || isNaN(jumlah) || jumlah <= 0) return alert('Pilih produk dan jumlah');
+
+            const produk = produkJadi.find(p => p.id == produkId);
+            if (!produk) return alert('Produk tidak ditemukan');
+            if (produk.stok < jumlah) return alert(`Stok tidak cukup. Tersedia: ${produk.stok}`);
+
+            produk.stok -= jumlah;
+            await db.collection('produkJadi').doc(produk.id).update({ stok: produk.stok });
+
+            const afkirData = {
+                produkId: produk.id,
+                namaProduk: produk.nama,
+                jenisAfkir: 'retur',
+                jumlah,
+                tanggalMasuk: new Date().toISOString().split('T')[0],
+                sumber: 'retur',
+                sumberId: orderId || null,
+                alasan,
+                keterangan,
+                status: 'tersedia'
+            };
+            await db.collection('afkir').add(afkirData);
+
+            const returData = {
+                orderId: orderId || null,
+                produkId,
+                jumlah,
+                alasan,
+                keterangan,
+                tanggal: new Date().toISOString().split('T')[0]
+            };
+            await db.collection('retur').add(returData);
+
+            await loadAllFromFirestore();
+
+            document.getElementById('returOrder').value = '';
+            document.getElementById('returProduk').value = '';
+            document.getElementById('returJumlah').value = '';
+            document.getElementById('returAlasan').value = 'expired';
+            document.getElementById('returKeterangan').value = '';
+            
+            alert('Retur berhasil diproses. Produk masuk ke stok afkir.');
+        }
+
+        function renderRetur() {
+            const container = document.getElementById('daftarRetur');
+            if (returList.length === 0) {
+                container.innerHTML = '<div class="list-item">Belum ada retur.</div>';
+                return;
+            }
+            let html = '';
+            returList.slice().reverse().forEach(r => {
+                html += `<div class="list-item">
+                    <div><strong>Retur ${getProdukNama(r.produkId)}</strong> x${r.jumlah}</div>
+                    <div class="text-small">Tanggal: ${r.tanggal} | Alasan: ${r.alasan}</div>
+                    <div class="text-small">Keterangan: ${r.keterangan || '-'}</div>
+                    <div class="text-small">Order: ${r.orderId ? '#'+r.orderId : 'Langsung'}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // ==================== AFKIR ====================
+        function renderAfkir() {
+            const gagal = afkirList.filter(a => a.jenisAfkir === 'gagal' && a.status === 'tersedia')
+                .reduce((sum, a) => sum + a.jumlah, 0);
+            const retur = afkirList.filter(a => a.jenisAfkir === 'retur' && a.status === 'tersedia')
+                .reduce((sum, a) => sum + a.jumlah, 0);
+            
+            document.getElementById('afkirGagal').innerText = gagal;
+            document.getElementById('afkirRetur').innerText = retur;
+            document.getElementById('afkirTotal').innerText = gagal + retur;
+
+            const daftarTersedia = document.getElementById('daftarAfkirTersedia');
+            const afkirTersedia = afkirList.filter(a => a.status === 'tersedia');
+            
+            if (afkirTersedia.length === 0) {
+                daftarTersedia.innerHTML = '<tr><td colspan="5" style="text-align:center;">Tidak ada stok afkir tersedia.</td></tr>';
+            } else {
+                let html = '';
+                afkirTersedia.forEach(a => {
+                    html += `<tr>
+                        <td>${a.namaProduk}</td>
+                        <td><span class="badge ${a.jenisAfkir === 'gagal' ? 'badge-warning' : 'badge-danger'}">${a.jenisAfkir === 'gagal' ? 'Gagal Produksi' : 'Retur/Expired'}</span></td>
+                        <td>${a.jumlah} unit</td>
+                        <td>${a.tanggalMasuk}</td>
+                        <td>${a.sumber} ${a.sumberId ? '(#'+a.sumberId+')' : ''}</td>
+                    </tr>`;
+                });
+                daftarTersedia.innerHTML = html;
+            }
+
+            renderPenjualanAfkir();
+        }
+
+        function tambahItemAfkir() {
+            const div = document.createElement('div');
+            div.className = 'afkir-item-row flex';
+            div.style.marginBottom = '8px';
+            div.style.alignItems = 'center';
+            
+            const afkirTersedia = afkirList.filter(a => a.status === 'tersedia');
+            let options = '<option value="">Pilih Item Afkir</option>';
+            afkirTersedia.forEach(a => {
+                options += `<option value="${a.id}" data-jenis="${a.jenisAfkir}" data-max="${a.jumlah}" data-produk="${a.namaProduk}">${a.namaProduk} (${a.jenisAfkir === 'gagal' ? 'Gagal' : 'Retur'}) - Stok: ${a.jumlah}</option>`;
+            });
+
+            div.innerHTML = `
+                <select class="afkirItem" style="flex:2;" required onchange="updateHargaAfkir(this)">
+                    ${options}
+                </select>
+                <input type="number" class="afkirJumlah" placeholder="Jml" style="flex:1;" min="1" required oninput="updateSubtotalAfkir(this)">
+                <input type="number" class="afkirHarga" placeholder="Harga/unit" style="flex:1;" min="0" step="500" value="1000" required oninput="updateSubtotalAfkir(this)">
+                <span class="afkirSubtotal" style="min-width:100px;">Rp0</span>
+                <button type="button" class="btn-small btn-secondary" onclick="this.parentElement.remove(); hitungTotalAfkir();">✖</button>
+            `;
+            document.getElementById('afkirItems').appendChild(div);
+        }
+
+        function updateHargaAfkir(select) {
+            const row = select.closest('.afkir-item-row');
+            const selected = select.options[select.selectedIndex];
+            const maxStok = selected.getAttribute('data-max');
+            const jumlahInput = row.querySelector('.afkirJumlah');
+            jumlahInput.max = maxStok;
+            jumlahInput.value = 1;
+            updateSubtotalAfkir(jumlahInput);
+        }
+
+        function updateSubtotalAfkir(input) {
+            const row = input.closest('.afkir-item-row');
+            const jumlah = parseFloat(row.querySelector('.afkirJumlah').value) || 0;
+            const harga = parseFloat(row.querySelector('.afkirHarga').value) || 0;
+            const subtotal = jumlah * harga;
+            row.querySelector('.afkirSubtotal').innerText = 'Rp' + formatNumber(subtotal);
+            hitungTotalAfkir();
+        }
+
+        function hitungTotalAfkir() {
+            const rows = document.querySelectorAll('.afkir-item-row');
+            let total = 0;
+            rows.forEach(row => {
+                const subtotalSpan = row.querySelector('.afkirSubtotal');
+                const subtotal = parseInt(subtotalSpan.innerText.replace(/[^0-9]/g, '')) || 0;
+                total += subtotal;
+            });
+            document.getElementById('totalAfkirDisplay').innerText = 'Rp' + formatNumber(total);
+        }
+
+        async function simpanPenjualanAfkir() {
+            const tanggal = document.getElementById('jualAfkirTanggal').value;
+            const penerima = document.getElementById('jualAfkirPenerima').value.trim();
+            const keterangan = document.getElementById('jualAfkirKeterangan').value.trim();
+            const admin = document.getElementById('jualAfkirAdmin').value.trim();
+
+            if (!tanggal) return alert('Pilih tanggal penjualan');
+            if (!penerima) return alert('Isi nama penerima');
+            if (!admin) return alert('Isi nama admin');
+
+            const rows = document.querySelectorAll('.afkir-item-row');
+            const items = [];
+            let total = 0;
+
+            for (let row of rows) {
+                const select = row.querySelector('.afkirItem');
+                const afkirId = select.value;
+                const jumlah = parseInt(row.querySelector('.afkirJumlah').value);
+                const harga = parseInt(row.querySelector('.afkirHarga').value);
+
+                if (!afkirId || isNaN(jumlah) || jumlah <= 0 || isNaN(harga) || harga < 0) continue;
+
+                const afkir = afkirList.find(a => a.id == afkirId);
+                if (!afkir) continue;
+                if (afkir.jumlah < jumlah) {
+                    alert(`Stok afkir ${afkir.namaProduk} tidak cukup. Tersedia: ${afkir.jumlah}`);
+                    return;
+                }
+
+                items.push({
+                    afkirId,
+                    jumlah,
+                    hargaSatuan: harga,
+                    subtotal: jumlah * harga
+                });
+                total += jumlah * harga;
+            }
+
+            if (items.length === 0) return alert('Minimal satu item');
+
+            for (let item of items) {
+                const afkir = afkirList.find(a => a.id == item.afkirId);
+                if (afkir) {
+                    afkir.jumlah -= item.jumlah;
+                    if (afkir.jumlah === 0) {
+                        afkir.status = 'terjual';
+                    }
+                    await db.collection('afkir').doc(afkir.id).update({ jumlah: afkir.jumlah, status: afkir.status });
+                }
+            }
+
+            const penjualanData = {
+                tanggal,
+                items,
+                total,
+                penerima,
+                keterangan,
+                admin
+            };
+            await db.collection('penjualanAfkir').add(penjualanData);
+
+            await loadAllFromFirestore();
+            resetFormPenjualanAfkir();
+            alert('Penjualan afkir berhasil disimpan');
+        }
+
+        function resetFormPenjualanAfkir() {
+            document.getElementById('jualAfkirTanggal').value = '';
+            document.getElementById('jualAfkirPenerima').value = '';
+            document.getElementById('jualAfkirKeterangan').value = '';
+            document.getElementById('jualAfkirAdmin').value = 'Admin';
+            document.getElementById('afkirItems').innerHTML = '';
+            document.getElementById('totalAfkirDisplay').innerText = 'Rp0';
+            tambahItemAfkir();
+        }
+
+        function renderPenjualanAfkir() {
+            const container = document.getElementById('daftarPenjualanAfkir');
+            if (penjualanAfkirList.length === 0) {
+                container.innerHTML = '<tr><td colspan="6" style="text-align:center;">Belum ada penjualan afkir.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            penjualanAfkirList.slice().reverse().forEach(p => {
+                const itemCount = p.items.length;
+                const itemList = p.items.map(it => {
+                    const afkir = afkirList.find(a => a.id == it.afkirId);
+                    return afkir ? `${afkir.namaProduk} x${it.jumlah}` : '';
+                }).filter(Boolean).join(', ');
+
+                html += `<tr>
+                    <td>${p.tanggal}</td>
+                    <td>${p.penerima}</td>
+                    <td>${itemCount} item (${itemList})</td>
+                    <td>Rp${formatNumber(p.total)}</td>
+                    <td>${p.admin}</td>
+                    <td>
+                        <button class="btn-small btn-outline" onclick="detailPenjualanAfkir('${p.id}')">📋 Detail</button>
+                    </td>
+                </tr>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function detailPenjualanAfkir(id) {
+            const penjualan = penjualanAfkirList.find(p => p.id == id);
+            if (!penjualan) return;
+
+            let itemsHtml = '<table style="width:100%; margin-top:16px;"><tr><th>Produk</th><th>Jenis</th><th>Jumlah</th><th>Harga</th><th>Subtotal</th></tr>';
+            penjualan.items.forEach(it => {
+                const afkir = afkirList.find(a => a.id == it.afkirId);
+                if (afkir) {
+                    itemsHtml += `<tr>
+                        <td>${afkir.namaProduk}</td>
+                        <td>${afkir.jenisAfkir === 'gagal' ? 'Gagal' : 'Retur'}</td>
+                        <td>${it.jumlah}</td>
+                        <td>Rp${formatNumber(it.hargaSatuan)}</td>
+                        <td>Rp${formatNumber(it.subtotal)}</td>
+                    </tr>`;
+                }
+            });
+            itemsHtml += `<tr><td colspan="4"><strong>Total</strong></td><td><strong>Rp${formatNumber(penjualan.total)}</strong></td></tr></table>`;
+
+            const content = `
+                <p><strong>Tanggal:</strong> ${penjualan.tanggal}</p>
+                <p><strong>Penerima:</strong> ${penjualan.penerima}</p>
+                <p><strong>Keterangan:</strong> ${penjualan.keterangan || '-'}</p>
+                <p><strong>Admin:</strong> ${penjualan.admin}</p>
+                ${itemsHtml}
+            `;
+
+            document.getElementById('detailPenjualanAfkirContent').innerHTML = content;
+            document.getElementById('detailPenjualanAfkirModal').classList.add('active');
+        }
+
+        function tutupDetailModal() {
+            document.getElementById('detailPenjualanAfkirModal').classList.remove('active');
+        }
+
+        function printDetailPenjualanAfkir() {
+            const content = document.getElementById('detailPenjualanAfkirContent').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Detail Penjualan Afkir</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #5a3e2b; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background: #d4a373; color: white; padding: 8px; }
+                        td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🍞 RotiKu Pro - Detail Penjualan Afkir</h1>
+                    ${content}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        // ==================== DASHBOARD ====================
+        function renderDashboard() {
+            document.getElementById('dashTotalBahan').innerText = bahanBaku.length;
+            const totalStokProduk = produkJadi.reduce((sum, p) => sum + p.stok, 0);
+            document.getElementById('dashTotalProduk').innerText = totalStokProduk;
+            const totalAfkir = afkirList.filter(a => a.status === 'tersedia').reduce((sum, a) => sum + a.jumlah, 0);
+            document.getElementById('dashTotalAfkir').innerText = totalAfkir;
+            const orderPending = orderList.filter(o => o.status === 'pending').length;
+            document.getElementById('dashOrderPending').innerText = orderPending;
+
+            const now = new Date();
+            const bulan = now.getMonth() + 1;
+            const tahun = now.getFullYear();
+            const produksiBulan = produksiList.filter(p => {
+                const t = p.tanggal.split('-');
+                return parseInt(t[0]) === tahun && parseInt(t[1]) === bulan;
+            });
+            let prodHtml = '';
+            if (produksiBulan.length === 0) prodHtml = 'Tidak ada produksi bulan ini.';
+            else {
+                produksiBulan.forEach(p => {
+                    prodHtml += `<div>${p.tanggal} - ${getResepNama(p.resepId)}: Total ${p.hasilUnit} unit (Bagus: ${p.produkBagus}, Gagal: ${p.produkGagal})</div>`;
+                });
+            }
+            document.getElementById('produksiBulanIni').innerHTML = prodHtml;
+
+            let laba = 0;
+            for (let order of orderList.filter(o => o.status === 'selesai' && o.tanggal.startsWith(tahun+'-'+('0'+bulan).slice(-2)))) {
+                for (let item of order.items) {
+                    const produk = produkJadi.find(p => p.resepId == item.resepId);
+                    if (!produk) continue;
+                    const resep = resepList.find(r => r.id == item.resepId);
+                    if (!resep) continue;
+                    let hpp = 0;
+                    resep.bahan.forEach(b => {
+                        const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                        if (bahan) hpp += bahan.harga * b.jumlah;
+                    });
+                    hpp = hpp / resep.hasilPerBatch;
+                    laba += (item.hargaSaatItu - hpp) * item.jumlah;
+                }
+            }
+            document.getElementById('labaBulanIni').innerText = 'Rp' + formatNumber(Math.round(laba));
+        }
+
+        // ==================== LAPORAN ====================
+        function tampilkanLaporan() {
+            const jenis = document.getElementById('laporanJenis').value;
+            const tanggal = document.getElementById('laporanTanggal').value;
+            if (!tanggal) return alert('Pilih tanggal');
+            let filterTanggal;
+            if (jenis === 'harian') {
+                filterTanggal = (t) => t === tanggal;
+            } else {
+                const [tahun, bulan] = tanggal.split('-').slice(0,2);
+                filterTanggal = (t) => t.startsWith(tahun+'-'+bulan);
+            }
+
+            const produksiFilter = produksiList.filter(p => filterTanggal(p.tanggal));
+            let prodHtml = '<table class="laporan-table"><tr><th>Tanggal</th><th>Resep</th><th>Batch</th><th>Total</th><th>Bagus</th><th>Gagal</th><th>Biaya Bahan</th><th>TK</th><th>Operasional</th><th>Kemasan</th><th>Total Biaya</th><th>HPP/Unit</th></tr>';
+            let totalBiayaBahan = 0;
+            let totalBiayaProduksi = 0;
+            let totalProdukBagus = 0;
+
+            produksiFilter.forEach(p => {
+                const resep = resepList.find(r => r.id == p.resepId);
+                let biayaBahan = 0;
+                if (resep) {
+                    biayaBahan = resep.bahan.reduce((sum, b) => {
+                        const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                        return sum + (bahan ? bahan.harga * b.jumlah * p.batch : 0);
+                    }, 0);
+                }
+                const totalBiaya = biayaBahan + p.biayaTenagaKerja + p.biayaOperasional + p.biayaKemasan;
+                const hppPerUnit = p.produkBagus > 0 ? totalBiaya / p.produkBagus : 0;
+                
+                totalBiayaBahan += biayaBahan;
+                totalBiayaProduksi += totalBiaya;
+                totalProdukBagus += p.produkBagus;
+
+                prodHtml += `<tr>
+                    <td>${p.tanggal}</td>
+                    <td>${getResepNama(p.resepId)}</td>
+                    <td>${p.batch}</td>
+                    <td>${p.hasilUnit}</td>
+                    <td>${p.produkBagus}</td>
+                    <td>${p.produkGagal}</td>
+                    <td>Rp${formatNumber(Math.round(biayaBahan))}</td>
+                    <td>Rp${formatNumber(p.biayaTenagaKerja)}</td>
+                    <td>Rp${formatNumber(p.biayaOperasional)}</td>
+                    <td>Rp${formatNumber(p.biayaKemasan)}</td>
+                    <td>Rp${formatNumber(Math.round(totalBiaya))}</td>
+                    <td>Rp${formatNumber(Math.round(hppPerUnit))}</td>
+                </tr>`;
+            });
+            prodHtml += `<tr>
+                <td colspan="6"><strong>Total</strong></td>
+                <td><strong>Rp${formatNumber(Math.round(totalBiayaBahan))}</strong></td>
+                <td colspan="3"></td>
+                <td><strong>Rp${formatNumber(Math.round(totalBiayaProduksi))}</strong></td>
+                <td><strong>Rp${formatNumber(Math.round(totalProdukBagus > 0 ? totalBiayaProduksi / totalProdukBagus : 0))}</strong> (rata2)</td>
+            </tr>`;
+            prodHtml += '</table>';
+            document.getElementById('laporanProduksi').innerHTML = prodHtml || '<div>Tidak ada data</div>';
+
+            const orderFilter = orderList.filter(o => o.status === 'selesai' && filterTanggal(o.tanggal));
+            let orderHtml = '<table class="laporan-table"><tr><th>Tanggal</th><th>Customer</th><th>Tipe</th><th>Total</th><th>DP</th><th>Sisa</th></tr>';
+            let totalPenjualan = 0;
+            orderFilter.forEach(o => {
+                orderHtml += `<tr><td>${o.tanggal}</td><td>${o.customer}</td><td>${o.tipe}</td><td>Rp${formatNumber(o.total)}</td><td>Rp${formatNumber(o.dp || 0)}</td><td>Rp${formatNumber(o.sisa || 0)}</td></tr>`;
+                totalPenjualan += o.total;
+            });
+            orderHtml += `<tr><td colspan="3"><strong>Total</strong></td><td><strong>Rp${formatNumber(totalPenjualan)}</strong></td><td></td><td></td></tr>`;
+            orderHtml += '</table>';
+            document.getElementById('laporanPenjualan').innerHTML = orderHtml || '<div>Tidak ada data</div>';
+
+            const afkirFilter = penjualanAfkirList.filter(p => filterTanggal(p.tanggal));
+            let afkirHtml = '<table class="laporan-table"><tr><th>Tanggal</th><th>Penerima</th><th>Item</th><th>Total</th><th>Admin</th></tr>';
+            let totalAfkir = 0;
+            afkirFilter.forEach(p => {
+                const itemCount = p.items.length;
+                afkirHtml += `<tr><td>${p.tanggal}</td><td>${p.penerima}</td><td>${itemCount} item</td><td>Rp${formatNumber(p.total)}</td><td>${p.admin}</td></tr>`;
+                totalAfkir += p.total;
+            });
+            afkirHtml += `<tr><td colspan="3"><strong>Total</strong></td><td><strong>Rp${formatNumber(totalAfkir)}</strong></td><td></td></tr>`;
+            afkirHtml += '</table>';
+            document.getElementById('laporanPenjualanAfkir').innerHTML = afkirHtml || '<div>Tidak ada data</div>';
+
+            let laba = 0;
+            for (let order of orderFilter) {
+                for (let item of order.items) {
+                    const produk = produkJadi.find(p => p.resepId == item.resepId);
+                    if (!produk) continue;
+                    const resep = resepList.find(r => r.id == item.resepId);
+                    if (!resep) continue;
+                    let hpp = 0;
+                    resep.bahan.forEach(b => {
+                        const bahan = bahanBaku.find(bb => bb.id == b.bahanId);
+                        if (bahan) hpp += bahan.harga * b.jumlah;
+                    });
+                    hpp = hpp / resep.hasilPerBatch;
+                    laba += (item.hargaSaatItu - hpp) * item.jumlah;
+                }
+            }
+            document.getElementById('laporanLaba').innerText = 'Rp' + formatNumber(Math.round(laba));
+        }
+
+        function renderLaporan() {
+            if (!document.getElementById('laporanTanggal').value) {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('laporanTanggal').value = today;
+            }
+            tampilkanLaporan();
+        }
+
+        function printLaporan() {
+            const jenis = document.getElementById('laporanJenis').value;
+            const tanggal = document.getElementById('laporanTanggal').value;
+            if (!tanggal) return alert('Pilih tanggal terlebih dahulu');
+
+            const produksiDiv = document.getElementById('laporanProduksi').innerHTML;
+            const penjualanDiv = document.getElementById('laporanPenjualan').innerHTML;
+            const afkirDiv = document.getElementById('laporanPenjualanAfkir').innerHTML;
+            const laba = document.getElementById('laporanLaba').innerText;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Laporan ${jenis} - ${tanggal}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #5a3e2b; }
+                        h2 { margin-top: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                        th { background: #d4a373; color: white; padding: 8px; }
+                        td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        .laba { font-size: 1.5em; font-weight: bold; margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🍞 RotiKu Pro - Laporan ${jenis}</h1>
+                    <p>Periode: ${tanggal}</p>
+
+                    <h2>Produksi</h2>
+                    ${produksiDiv}
+
+                    <h2>Penjualan (Order Selesai)</h2>
+                    ${penjualanDiv}
+
+                    <h2>Penjualan Afkir</h2>
+                    ${afkirDiv}
+
+                    <div class="laba">${laba}</div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        // ==================== PENGELOLAAN USER ====================
+        function renderPengguna() {
+            if (!currentUser || currentUser.role !== 'super') return;
+            const tbody = document.getElementById('daftarUser');
+            let html = '';
+            users.forEach((u, index) => {
+                const roleText = {
+                    'super': 'Super Admin',
+                    'order': 'Admin Order',
+                    'produksi': 'Admin Produksi',
+                    'afkir': 'Admin Afkir'
+                }[u.role] || u.role;
+                html += `<tr>
+                    <td>${u.username}</td>
+                    <td>${roleText}</td>
+                    <td>
+                        <button class="btn-small btn-outline" onclick="verifikasiPassword(() => bukaUbahPassword('${u.username}', '${u.id}'))">🔑 Ubah Password</button>
+                        ${u.username !== currentUser.username ? `<button class="btn-small btn-danger" onclick="verifikasiPassword(() => hapusUser('${u.id}'))">🗑️ Hapus</button>` : ''}
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function tambahUser() {
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('newRole').value;
+
+            if (!username || !password) {
+                alert('Username dan password harus diisi');
+                return;
+            }
+            if (users.find(u => u.username === username)) {
+                alert('Username sudah ada');
+                return;
+            }
+
+            let allowedTabs = [];
+            if (role === 'super') {
+                allowedTabs = ['dashboard', 'bahanbaku', 'resep', 'produksi', 'stokproduk', 'order', 'retur', 'afkir', 'laporan', 'pengguna'];
+            } else if (role === 'order') {
+                allowedTabs = ['dashboard', 'order', 'retur', 'laporan'];
+            } else if (role === 'produksi') {
+                allowedTabs = ['dashboard', 'bahanbaku', 'resep', 'produksi', 'stokproduk', 'laporan'];
+            } else if (role === 'afkir') {
+                allowedTabs = ['dashboard', 'afkir', 'laporan'];
+            }
+
+            const newUser = {
+                username,
+                password: btoa(password),
+                role,
+                allowedTabs
+            };
+            await db.collection('users').add(newUser);
+            await loadAllFromFirestore();
+            renderPengguna();
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            alert('User berhasil ditambahkan');
+        }
+
+        function bukaUbahPassword(username, userId) {
+            document.getElementById('ubahPasswordUserId').value = userId;
+            document.getElementById('ubahPasswordUsername').value = username;
+            document.getElementById('ubahPasswordBaru').value = '';
+            document.getElementById('ubahPasswordModal').classList.add('active');
+        }
+
+        function tutupUbahPasswordModal() {
+            document.getElementById('ubahPasswordModal').classList.remove('active');
+        }
+
+        async function simpanUbahPassword() {
+            const userId = document.getElementById('ubahPasswordUserId').value;
+            const passwordBaru = document.getElementById('ubahPasswordBaru').value;
+            if (!passwordBaru) {
+                alert('Password baru tidak boleh kosong');
+                return;
+            }
+            await db.collection('users').doc(userId).update({ password: btoa(passwordBaru) });
+            await loadAllFromFirestore();
+            tutupUbahPasswordModal();
+            alert('Password berhasil diubah');
+        }
+
+        async function hapusUser(userId) {
+            const user = users.find(u => u.id == userId);
+            if (user.username === currentUser.username) {
+                alert('Tidak dapat menghapus diri sendiri');
+                return;
+            }
+            if (confirm(`Hapus user ${user.username}?`)) {
+                await db.collection('users').doc(userId).delete();
+                await loadAllFromFirestore();
+                renderPengguna();
+            }
+        }
+
+        // ==================== INITIAL DATA SEED (Jika database kosong) ====================
+        async function seedInitialData() {
+            const bahanSnapshot = await db.collection('bahanBaku').limit(1).get();
+            if (!bahanSnapshot.empty) return; // sudah ada data
+
+            // Tambah bahan baku
+            const tepungRef = await db.collection('bahanBaku').add({ nama: 'Tepung Terigu', satuan: 'kg', harga: 12000, stok: 50 });
+            const ragiRef = await db.collection('bahanBaku').add({ nama: 'Ragi', satuan: 'pcs', harga: 2000, stok: 100 });
+            const gulaRef = await db.collection('bahanBaku').add({ nama: 'Gula Pasir', satuan: 'kg', harga: 15000, stok: 30 });
+            const mentegaRef = await db.collection('bahanBaku').add({ nama: 'Mentega', satuan: 'kg', harga: 25000, stok: 20 });
+
+            // Tambah resep
+            const resep1 = await db.collection('resep').add({
+                nama: 'Roti Manis',
+                hasilPerBatch: 10,
+                bahan: [
+                    { bahanId: tepungRef.id, jumlah: 1 },
+                    { bahanId: ragiRef.id, jumlah: 2 },
+                    { bahanId: gulaRef.id, jumlah: 0.5 }
+                ]
+            });
+            const resep2 = await db.collection('resep').add({
+                nama: 'Roti Tawar',
+                hasilPerBatch: 8,
+                bahan: [
+                    { bahanId: tepungRef.id, jumlah: 1.2 },
+                    { bahanId: ragiRef.id, jumlah: 1 },
+                    { bahanId: mentegaRef.id, jumlah: 0.3 }
+                ]
+            });
+
+            // Tambah produk jadi
+            await db.collection('produkJadi').add({ nama: 'Roti Manis', stok: 20, hargaJual: 5000, resepId: resep1.id });
+            await db.collection('produkJadi').add({ nama: 'Roti Tawar', stok: 15, hargaJual: 8000, resepId: resep2.id });
+
+            // Tambah users
+            await db.collection('users').add({ username: 'superadmin', password: btoa('super123'), role: 'super', allowedTabs: ['dashboard','bahanbaku','resep','produksi','stokproduk','order','retur','afkir','laporan','pengguna'] });
+            await db.collection('users').add({ username: 'order_admin', password: btoa('order123'), role: 'order', allowedTabs: ['dashboard','order','retur','laporan'] });
+            await db.collection('users').add({ username: 'produksi_admin', password: btoa('produksi123'), role: 'produksi', allowedTabs: ['dashboard','bahanbaku','resep','produksi','stokproduk','laporan'] });
+            await db.collection('users').add({ username: 'afkir_admin', password: btoa('afkir123'), role: 'afkir', allowedTabs: ['dashboard','afkir','laporan'] });
+        }
+
+        // ==================== INIT ====================
+        window.onload = async function() {
+            await seedInitialData();
+            await loadAllFromFirestore();
+            document.getElementById('loginModal').classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.add('hidden'));
+        };
+    </script>
+</body>
+</html>
