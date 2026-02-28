@@ -8,18 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
-<script
-const firebaseConfig = {
-  apiKey: "AIzaSyBynxMAq1rTtB5Wx_zj9UGkXNJxVSqasYk",
-  authDomain: "rotikupro.firebaseapp.com",
-  projectId: "rotikupro",
-  storageBucket: "rotikupro.firebasestorage.app",
-  messagingSenderId: "6512287858",
-  appId: "1:6512287858:web:c3feb3586af50965a9a2eb"
-};
-firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
 
     <style>
         /* ===== CSS SAMA SEPERTI SEBELUMNYA (diringkas untuk kejelasan) ===== */
@@ -983,17 +971,18 @@ firebase.initializeApp(firebaseConfig);
     </div>
 
     <script>
-        // ==================== FIREBASE CONFIG (GANTI DENGAN PUNYA ANDA) ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSy...", // GANTI
-            authDomain: "your-project.firebaseapp.com", // GANTI
-            projectId: "your-project", // GANTI
-            storageBucket: "your-project.appspot.com", // GANTI
-            messagingSenderId: "...", // GANTI
-            appId: "..." // GANTI
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // ==================== FIREBASE CONFIG (GANTI DENGAN PUNYA ANDA) ====================            
+const firebaseConfig = {
+  apiKey: "AIzaSyBynxMAq1rTtB5Wx_zj9UGkXNJxVSqasYk",
+  authDomain: "rotikupro.firebaseapp.com",
+  projectId: "rotikupro",
+  storageBucket: "rotikupro.firebasestorage.app",
+  messagingSenderId: "6512287858",
+  appId: "1:6512287858:web:c3feb3586af50965a9a2eb"
+};
+firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+      </script>
 
         // ==================== DATA UTAMA ====================
         let bahanBaku = [];
