@@ -1004,11 +1004,15 @@ const googleProvider = new firebase.auth.GoogleAuthProvider();
 // Fungsi untuk login dengan Google
 async function signInWithGoogle() {
     try {
-        // Tampilkan popup login Google
-        const result = await auth.signInWithPopup(googleProvider);
-        const user = result.user;
-
-        // Cari user di Firestore berdasarkan email
+        await auth.signInWithRedirect(googleProvider);
+        // Fungsi ini akan mengarahkan ke Google, dan setelah kembali akan diproses di getRedirectResult
+    } catch (error) {
+        console.error('Google Sign-In error:', error);
+        alert('Gagal memulai login Google. Pastikan Anda tidak memblokir popup.');
+    }
+}
+    
+    // Cari user di Firestore berdasarkan email
         const userQuery = await db.collection('users').where('email', '==', user.email).get();
 
         if (userQuery.empty) {
