@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>RotiKu Pro - Manajemen Produksi & Order (Firebase)</title>
-    <!-- Firebase SDK -->
+  
+  <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
+<!-- Firebase Auth SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+
 
     <style>
         /* ===== CSS SAMA SEPERTI SEBELUMNYA (diringkas untuk kejelasan) ===== */
@@ -869,6 +874,13 @@
             </div>
         </div>
     </div>
+<!-- Di dalam modal-content, setelah form login -->
+<div class="flex" style="justify-content: center; margin-top: 16px;">
+    <button class="btn btn-danger" onclick="signInWithGoogle()" style="background: #db4437; box-shadow: 0 5px 0 #a33e2b;">
+        🔴 Sign In with Google
+    </button>
+</div>
+
 
     <!-- Modal Verifikasi Password untuk Hapus/Edit -->
     <div class="modal" id="passwordModal">
@@ -982,6 +994,81 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+
+// Di bagian setelah firebase.initializeApp
+const auth = firebase.auth();
+
+// Inisialisasi provider Google
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// Fungsi untuk login dengan Google
+async function signInWithGoogle() {
+    try {
+        // Tampilkan popup login Google
+        const result = await auth.signInWithPopup(googleProvider);
+        const user = result.user;
+
+        // Cari user di Firestore berdasarkan email
+        const userQuery = await db.collection('users').where('email', '==', user.email).get();
+
+        if (userQuery.empty) {
+            // Jika email tidak terdaftar, batalkan login
+            alert('Email tidak terdaftar. Silakan hubungi Super Admin.');
+            await auth.signOut(); // Logout dari Google
+            return;
+        }
+
+        // Ambil data user pertama (seharusnya hanya satu)
+        const userDoc = userQuery.docs[0];
+        currentUser = { id: userDoc.id, ...userDoc.data() };
+
+        // Tampilkan informasi user
+        document.getElementById('userNameDisplay').innerText = currentUser.username || currentUser.email;
+        document.getElementById('userInfo').style.display = 'flex';
+        document.getElementById('loginModal').classList.remove('active');
+        applyPermissions();
+        renderSemua();
+
+        // Set default tab ke dashboard
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector('[data-tab="dashboard"]').classList.add('active');
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById('dashboard').classList.add('active');
+
+    } catch (error) {
+        console.error('Google Sign-In error:', error);
+        alert('Gagal login dengan Google: ' + error.message);
+    }
+}
+
+
+
+
+async function registerUser(email, password, username, role) {
+    try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // Tentukan allowedTabs (sama seperti sebelumnya)
+        let allowedTabs = []; // ... sesuai role
+
+        // Simpan data user di Firestore dengan UID dari Auth
+        await db.collection('users').doc(user.uid).set({
+            username: username,
+            email: email,
+            role: role,
+            allowedTabs: allowedTabs
+        });
+
+        return user;
+    } catch (error) {
+        console.error('Registrasi gagal:', error);
+        alert('Registrasi gagal: ' + error.message);
+        throw error;
+    }
+}
+
+
 
 
         // ==================== DATA UTAMA ====================
@@ -2946,11 +3033,109 @@ firebase.initializeApp(firebaseConfig);
             await db.collection('produkJadi').add({ nama: 'Roti Tawar', stok: 15, hargaJual: 8000, resepId: resep2.id });
 
             // Tambah users
-            await db.collection('users').add({ username: 'superadmin', password: btoa('super123'), role: 'super', allowedTabs: ['dashboard','bahanbaku','resep','produksi','stokproduk','order','retur','afkir','laporan','pengguna'] });
-            await db.collection('users').add({ username: 'order_admin', password: btoa('order123'), role: 'order', allowedTabs: ['dashboard','order','retur','laporan'] });
-            await db.collection('users').add({ username: 'produksi_admin', password: btoa('produksi123'), role: 'produksi', allowedTabs: ['dashboard','bahanbaku','resep','produksi','stokproduk','laporan'] });
-            await db.collection('users').add({ username: 'afkir_admin', password: btoa('afkir123'), role: 'afkir', allowedTabs: ['dashboard','afkir','laporan'] });
+
+async function tambahUser() {
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const role = document.getElementById('newRole').value;
+    const email = username + '@roti.local'; // atau gunakan field email terpisah
+
+    if (!username || !password) {
+        alert('Username dan password harus diisi');
+        return;
+    }
+
+    try {
+        await registerUser(email, password, username, role);
+        await loadAllFromFirestore();
+        renderPengguna();
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+        alert('User berhasil ditambahkan');
+    } catch (error) {
+        // Error sudah ditampilkan di registerUser
+    }
+}
+
+async function seedInitialData() {
+    const bahanSnapshot = await db.collection('bahanBaku').limit(1).get();
+    if (!bahanSnapshot.empty) return; // sudah ada data
+
+    // 1. TAMBAH BAHAN BAKU (sama seperti sebelumnya)
+    const tepungRef = await db.collection('bahanBaku').add({ nama: 'Tepung Terigu', satuan: 'kg', harga: 12000, stok: 50 });
+    const ragiRef = await db.collection('bahanBaku').add({ nama: 'Ragi', satuan: 'pcs', harga: 2000, stok: 100 });
+    const gulaRef = await db.collection('bahanBaku').add({ nama: 'Gula Pasir', satuan: 'kg', harga: 15000, stok: 30 });
+    const mentegaRef = await db.collection('bahanBaku').add({ nama: 'Mentega', satuan: 'kg', harga: 25000, stok: 20 });
+
+    // 2. TAMBAH RESEP (sama seperti sebelumnya)
+    const resep1 = await db.collection('resep').add({
+        nama: 'Roti Manis',
+        hasilPerBatch: 10,
+        bahan: [
+            { bahanId: tepungRef.id, jumlah: 1 },
+            { bahanId: ragiRef.id, jumlah: 2 },
+            { bahanId: gulaRef.id, jumlah: 0.5 }
+        ]
+    });
+    const resep2 = await db.collection('resep').add({
+        nama: 'Roti Tawar',
+        hasilPerBatch: 8,
+        bahan: [
+            { bahanId: tepungRef.id, jumlah: 1.2 },
+            { bahanId: ragiRef.id, jumlah: 1 },
+            { bahanId: mentegaRef.id, jumlah: 0.3 }
+        ]
+    });
+
+    // 3. TAMBAH PRODUK JADI (sama seperti sebelumnya)
+    await db.collection('produkJadi').add({ nama: 'Roti Manis', stok: 20, hargaJual: 5000, resepId: resep1.id });
+    await db.collection('produkJadi').add({ nama: 'Roti Tawar', stok: 15, hargaJual: 8000, resepId: resep2.id });
+
+    // 4. TAMBAH USER VIA FIREBASE AUTH (BARU)
+    const usersData = [
+        { username: 'superadmin', password: 'super123', role: 'super', email: 'technobee72@gmail.com' },
+        { username: 'order_admin', password: 'order123', role: 'order', email: 'order_admin@roti.local' },
+        { username: 'produksi_admin', password: 'produksi123', role: 'produksi', email: 'produksi_admin@roti.local' },
+        { username: 'afkir_admin', password: 'afkir123', role: 'afkir', email: 'afkir_admin@roti.local' }
+    ];
+
+    for (let u of usersData) {
+        try {
+            // Buat user di Firebase Authentication
+            const userCredential = await auth.createUserWithEmailAndPassword(u.email, u.password);
+            const user = userCredential.user;
+
+            // Tentukan allowedTabs berdasarkan role
+            let allowedTabs = [];
+            if (u.role === 'super') {
+                allowedTabs = ['dashboard', 'bahanbaku', 'resep', 'produksi', 'stokproduk', 'order', 'retur', 'afkir', 'laporan', 'pengguna'];
+            } else if (u.role === 'order') {
+                allowedTabs = ['dashboard', 'order', 'retur', 'laporan'];
+            } else if (u.role === 'produksi') {
+                allowedTabs = ['dashboard', 'bahanbaku', 'resep', 'produksi', 'stokproduk', 'laporan'];
+            } else if (u.role === 'afkir') {
+                allowedTabs = ['dashboard', 'afkir', 'laporan'];
+            }
+
+            // Simpan data tambahan di Firestore dengan UID sebagai ID dokumen
+            await db.collection('users').doc(user.uid).set({
+                username: u.username,
+                email: u.email,
+                role: u.role,
+                allowedTabs: allowedTabs
+            });
+
+            console.log(`User ${u.username} berhasil dibuat`);
+        } catch (error) {
+            console.error(`Gagal membuat user ${u.username}:`, error);
         }
+    }
+}
+
+
+
+
+ 
 
         // ==================== INIT ====================
         window.onload = async function() {
