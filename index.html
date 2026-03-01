@@ -3134,13 +3134,41 @@ async function seedInitialData() {
 
 
         // ==================== INIT ====================
-        window.onload = async function() {
-            await seedInitialData();
-            await loadAllFromFirestore();
-            document.getElementById('loginModal').classList.add('active');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.add('hidden'));
-await auth.signInWithRedirect(googleProvider);
 
+window.onload = async function() {
+    await seedInitialData();
+    await loadAllFromFirestore();
+
+    // Handle redirect result
+    try {
+        const result = await auth.getRedirectResult();
+        if (result.user) {
+            // Login berhasil via redirect
+            const user = result.user;
+            const userQuery = await db.collection('users').where('email', '==', user.email).get();
+            if (!userQuery.empty) {
+                const userDoc = userQuery.docs[0];
+                currentUser = { id: userDoc.id, ...userDoc.data() };
+                document.getElementById('userNameDisplay').innerText = currentUser.username || currentUser.email;
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('loginModal').classList.remove('active');
+                applyPermissions();
+                renderSemua();
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector('[data-tab="dashboard"]').classList.add('active');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.getElementById('dashboard').classList.add('active');
+            } else {
+                alert('Email tidak terdaftar. Silakan hubungi Super Admin.');
+                await auth.signOut();
+            }
+        }
+    } catch (error) {
+        console.error('Redirect sign-in error:', error);
+    }
+
+    document.getElementById('loginModal').classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.add('hidden'));
         };
     </script>
 </body>
