@@ -3133,16 +3133,14 @@ async function seedInitialData() {
 }
 
 
-
-
- 
-
         // ==================== INIT ====================
         window.onload = async function() {
             await seedInitialData();
             await loadAllFromFirestore();
             document.getElementById('loginModal').classList.add('active');
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.add('hidden'));
+await auth.signInWithRedirect(googleProvider);
+
         };
     </script>
 </body>
